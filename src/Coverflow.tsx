@@ -3,17 +3,29 @@ import { useDrag } from "@use-gesture/react";
 import { useState } from "react";
 
 const COVER_SIZE = 400;
-const FIRST_GAP = 160;
+
+// x
+const FIRST_GAP = 220;
 const GAP = 80;
 
+// scale
+const FISRST_SCALE = -0.2;
+const SCALE = -0.05;
+
 const getX = (score: number) => {
+  if (score < -1) {
+    return -FIRST_GAP + GAP * (score + 1);
+  }
   if (score < 1) {
     return score * FIRST_GAP;
   }
-  return FIRST_GAP + GAP * score;
+  return FIRST_GAP + GAP * (score - 1);
 };
 
 const getScore = (x: number) => {
+  if (x < -FIRST_GAP) {
+    return (x + FIRST_GAP) / GAP - 1;
+  }
   if (x < FIRST_GAP) {
     return x / FIRST_GAP;
   }
@@ -21,6 +33,9 @@ const getScore = (x: number) => {
 };
 
 const getRotateY = (score: number) => {
+  if (score < -1) {
+    return 40;
+  }
   if (score < 1) {
     return score * -40;
   }
@@ -28,24 +43,38 @@ const getRotateY = (score: number) => {
 };
 
 const getScale = (score: number) => {
+  if (score < -2) {
+    return 1 + FISRST_SCALE + SCALE;
+  }
+  if (score < -1) {
+    return 1 + FISRST_SCALE + SCALE * (score + 1);
+  }
+  if (score < 0) {
+    return 1 - FISRST_SCALE * score;
+  }
   if (score < 1) {
-    return 1 - 0.2 * score;
+    return 1 + FISRST_SCALE * score;
   }
   if (score < 2) {
-    return 0.8 - 0.05 * (score - 1);
+    return 1 + FISRST_SCALE + SCALE * (score - 1);
   }
-  return 0.75;
+  return 1 + FISRST_SCALE + SCALE;
 };
 
 const getTransform = (
   index: number,
-  x: number
+  x: number,
+  onScoreZero: () => void
 ): {
   scale: number;
   x: number;
   rotateY: string;
 } => {
   const score = getScore(x) + index;
+
+  if (Math.abs(score) <= 0.5) {
+    onScoreZero();
+  }
 
   return {
     scale: getScale(score),
@@ -69,14 +98,16 @@ const Cover = () => (
 );
 
 export const Coverflow = ({ width }: { width: number }) => {
-  const [current, setCurrent] = useState(0);
-
-  const [covers, coversApi] = useSprings(10, (index) => getTransform(index, 0));
+  const [current, setCurrnet] = useState(0);
+  const [covers, coversApi] = useSprings(10, (index) =>
+    getTransform(index, 0, () => setCurrnet(index))
+  );
 
   const bind = useDrag(
     ({ offset: [x] }) => {
-      coversApi.start((index) => getTransform(index, x));
-      setCurrent(Math.floor(-x / COVER_SIZE));
+      coversApi.start((index) =>
+        getTransform(index, x, () => setCurrnet(index))
+      );
     },
     {
       bounds: { right: 0 },
@@ -85,15 +116,15 @@ export const Coverflow = ({ width }: { width: number }) => {
   );
 
   return (
-    <div>
+    <div style={{ padding: 200 }}>
       <div
         {...bind()}
         style={{
-          overflowX: "hidden",
           touchAction: "none",
           position: "relative",
+
           height: COVER_SIZE,
-          width,
+
           perspective: "600px",
         }}
       >
@@ -104,7 +135,7 @@ export const Coverflow = ({ width }: { width: number }) => {
               position: "absolute",
               left: 0,
               top: 0,
-              zIndex: covers.length - index,
+              zIndex: covers.length - Math.abs(current - index),
               ...props,
             }}
           >
