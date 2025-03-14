@@ -1,7 +1,11 @@
 import { Coverflow } from "./Coverflow";
 
 function App() {
-  return <Coverflow />;
+  return (
+    <div style={{ padding: "80px 0" }}>
+      <Coverflow />
+    </div>
+  );
 }
 
 export default App;

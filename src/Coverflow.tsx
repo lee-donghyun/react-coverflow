@@ -52,7 +52,7 @@ const getScale = (score: number) => {
     return 1 + FISRST_SCALE + SCALE;
   }
   if (score < -1) {
-    return 1 + FISRST_SCALE + SCALE * (score + 1);
+    return 1 + FISRST_SCALE - SCALE * (score + 1);
   }
   if (score < 0) {
     return 1 - FISRST_SCALE * score;
@@ -80,23 +80,28 @@ const getTransform = (
   };
 };
 
-const Cover = () => (
-  <div
+const Cover = ({ src }: { src: string }) => (
+  <img
     style={{
       width: COVER_SIZE,
       height: COVER_SIZE,
 
       boxSizing: "border-box",
-      border: "1px solid blue",
 
-      backgroundColor: "red",
+      WebkitBoxReflect:
+        "below 0 linear-gradient(transparent, rgba(0,0,0,0), rgba(0,0,0,0.4))",
+
+      pointerEvents: "none",
+      userSelect: "none",
     }}
-  ></div>
+    src={src}
+  />
 );
 
 export const Coverflow = () => {
   const [current, setCurrnet] = useState(0);
   const [baseX, setBaseX] = useState(0);
+
   const [covers, coversApi] = useSprings(10, (index) => {
     const score = getScore(baseX) + index;
     return getTransform(score);
@@ -122,7 +127,7 @@ export const Coverflow = () => {
   };
 
   const config: DragConfig & UserWheelConfig = {
-    bounds: { right: 0 },
+    bounds: { right: 0, left: -(getX(covers.length) + COVER_SIZE) },
     rubberband: true,
   };
 
@@ -132,7 +137,12 @@ export const Coverflow = () => {
   );
 
   return (
-    <div style={{ padding: 200, overflow: "hidden" }}>
+    <div
+      style={{
+        padding: "20px 0 100px calc(50% - 200px)",
+        overflow: "hidden",
+      }}
+    >
       <div
         {...bind()}
         style={{
@@ -142,6 +152,7 @@ export const Coverflow = () => {
           height: COVER_SIZE,
 
           perspective: "600px",
+          perspectiveOrigin: "calc(0% + 200px) 50%",
         }}
       >
         {covers.map((props, index) => (
@@ -155,7 +166,7 @@ export const Coverflow = () => {
               ...props,
             }}
           >
-            <Cover />
+            <Cover src={`${(index % 7) + 1}.jpg`} />
           </animated.div>
         ))}
       </div>
