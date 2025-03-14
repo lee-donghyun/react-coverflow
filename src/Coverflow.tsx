@@ -5,7 +5,7 @@ import {
   useGesture,
   UserWheelConfig,
 } from "@use-gesture/react";
-import { useState } from "react";
+import { MouseEvent, TouchEvent, EventHandler, useRef, useState } from "react";
 
 const COVER_SIZE = 400;
 
@@ -80,25 +80,41 @@ const getTransform = (
   };
 };
 
-const Cover = ({ src }: { src: string }) => (
-  <img
-    style={{
-      width: COVER_SIZE,
-      height: COVER_SIZE,
+const Cover = ({
+  src,
+  onMouseDown,
+  onMouseUp,
+}: {
+  src: string;
+  onMouseDown: EventHandler<MouseEvent>;
+  onMouseUp: EventHandler<MouseEvent | TouchEvent>;
+}) => (
+  <button
+    onMouseDown={onMouseDown}
+    onTouchStart={onMouseDown}
+    onMouseUp={onMouseUp}
+    onTouchEnd={onMouseUp}
+    style={{ all: "unset" }}
+  >
+    <img
+      style={{
+        width: COVER_SIZE,
+        height: COVER_SIZE,
 
-      boxSizing: "border-box",
+        boxSizing: "border-box",
 
-      WebkitBoxReflect:
-        "below 0 linear-gradient(transparent, rgba(0,0,0,0), rgba(0,0,0,0.4))",
-
-      pointerEvents: "none",
-      userSelect: "none",
-    }}
-    src={src}
-  />
+        WebkitBoxReflect:
+          "below 0 linear-gradient(transparent, rgba(0,0,0,0), rgba(0,0,0,0.4))",
+        pointerEvents: "none",
+      }}
+      src={src}
+    />
+  </button>
 );
 
 export const Coverflow = () => {
+  const clickPosition = useRef<null | { x: number; y: number }>(null);
+
   const [current, setCurrnet] = useState(0);
   const [baseX, setBaseX] = useState(0);
 
@@ -166,7 +182,30 @@ export const Coverflow = () => {
               ...props,
             }}
           >
-            <Cover src={`${(index % 7) + 1}.jpg`} />
+            <Cover
+              src={`${(index % 7) + 1}.jpg`}
+              onMouseDown={(e) => {
+                const { x, y } = e.currentTarget.getBoundingClientRect();
+                clickPosition.current = { x, y };
+              }}
+              onMouseUp={(e) => {
+                const { x, y } = e.currentTarget.getBoundingClientRect();
+                if (clickPosition.current === null) return;
+                if (
+                  (clickPosition.current.x - x) ** 2 +
+                    (clickPosition.current.y - y) ** 2 <
+                  100
+                ) {
+                  const current = index;
+                  setCurrnet(index);
+                  setBaseX(-getX(current));
+                  coversApi.start((index) => {
+                    return getTransform(index - current);
+                  });
+                }
+                clickPosition.current = null;
+              }}
+            />
           </animated.div>
         ))}
       </div>
