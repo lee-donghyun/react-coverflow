@@ -1,7 +1,7 @@
 import { Coverflow } from "./Coverflow";
 
 function App() {
-  return <Coverflow width={window.innerWidth} />;
+  return <Coverflow />;
 }
 
 export default App;

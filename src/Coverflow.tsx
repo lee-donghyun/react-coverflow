@@ -62,20 +62,12 @@ const getScale = (score: number) => {
 };
 
 const getTransform = (
-  index: number,
-  x: number,
-  onScoreZero: () => void
+  score: number
 ): {
   scale: number;
   x: number;
   rotateY: string;
 } => {
-  const score = getScore(x) + index;
-
-  if (Math.abs(score) <= 0.5) {
-    onScoreZero();
-  }
-
   return {
     scale: getScale(score),
     x: getX(score),
@@ -97,17 +89,32 @@ const Cover = () => (
   ></div>
 );
 
-export const Coverflow = ({ width }: { width: number }) => {
+export const Coverflow = () => {
   const [current, setCurrnet] = useState(0);
-  const [covers, coversApi] = useSprings(10, (index) =>
-    getTransform(index, 0, () => setCurrnet(index))
-  );
+  const [baseX, setBaseX] = useState(0);
+  const [covers, coversApi] = useSprings(10, (index) => {
+    const score = getScore(baseX) + index;
+    return getTransform(score);
+  });
 
   const bind = useDrag(
-    ({ offset: [x] }) => {
-      coversApi.start((index) =>
-        getTransform(index, x, () => setCurrnet(index))
-      );
+    ({ movement: [x], active }) => {
+      if (active) {
+        return coversApi.start((index) => {
+          const score = getScore(baseX + x) + index;
+
+          if (Math.abs(score) <= 0.5) {
+            setCurrnet(index);
+          }
+
+          return getTransform(score);
+        });
+      }
+
+      setBaseX(-getX(current));
+      return coversApi.start((index) => {
+        return getTransform(index - current);
+      });
     },
     {
       bounds: { right: 0 },
@@ -116,7 +123,7 @@ export const Coverflow = ({ width }: { width: number }) => {
   );
 
   return (
-    <div style={{ padding: 200 }}>
+    <div style={{ padding: 200, overflow: "hidden" }}>
       <div
         {...bind()}
         style={{
