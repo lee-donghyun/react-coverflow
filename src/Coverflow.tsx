@@ -1,5 +1,10 @@
 import { animated, useSprings } from "@react-spring/web";
-import { useDrag } from "@use-gesture/react";
+import {
+  DragConfig,
+  Handler,
+  useGesture,
+  UserWheelConfig,
+} from "@use-gesture/react";
 import { useState } from "react";
 
 const COVER_SIZE = 400;
@@ -97,29 +102,33 @@ export const Coverflow = () => {
     return getTransform(score);
   });
 
-  const bind = useDrag(
-    ({ movement: [x], active }) => {
-      if (active) {
-        return coversApi.start((index) => {
-          const score = getScore(baseX + x) + index;
-
-          if (Math.abs(score) <= 0.5) {
-            setCurrnet(index);
-          }
-
-          return getTransform(score);
-        });
-      }
-
-      setBaseX(-getX(current));
+  const handler: Handler<"drag" | "wheel"> = ({ movement: [x], active }) => {
+    if (active) {
       return coversApi.start((index) => {
-        return getTransform(index - current);
+        const score = getScore(baseX + x) + index;
+
+        if (Math.abs(score) <= 0.5) {
+          setCurrnet(index);
+        }
+
+        return getTransform(score);
       });
-    },
-    {
-      bounds: { right: 0 },
-      rubberband: true,
     }
+
+    setBaseX(-getX(current));
+    return coversApi.start((index) => {
+      return getTransform(index - current);
+    });
+  };
+
+  const config: DragConfig & UserWheelConfig = {
+    bounds: { right: 0 },
+    rubberband: true,
+  };
+
+  const bind = useGesture(
+    { onDrag: handler, onWheel: handler },
+    { drag: config, wheel: config }
   );
 
   return (
