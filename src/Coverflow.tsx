@@ -14,7 +14,7 @@ const FIRST_GAP = 220;
 const GAP = 80;
 
 // scale
-const FISRST_SCALE = -0.2;
+const FIRST_SCALE = -0.2;
 const SCALE = -0.05;
 
 const getX = (score: number) => {
@@ -49,21 +49,21 @@ const getRotateY = (score: number) => {
 
 const getScale = (score: number) => {
   if (score < -2) {
-    return 1 + FISRST_SCALE + SCALE;
+    return 1 + FIRST_SCALE + SCALE;
   }
   if (score < -1) {
-    return 1 + FISRST_SCALE - SCALE * (score + 1);
+    return 1 + FIRST_SCALE - SCALE * (score + 1);
   }
   if (score < 0) {
-    return 1 - FISRST_SCALE * score;
+    return 1 - FIRST_SCALE * score;
   }
   if (score < 1) {
-    return 1 + FISRST_SCALE * score;
+    return 1 + FIRST_SCALE * score;
   }
   if (score < 2) {
-    return 1 + FISRST_SCALE + SCALE * (score - 1);
+    return 1 + FIRST_SCALE + SCALE * (score - 1);
   }
-  return 1 + FISRST_SCALE + SCALE;
+  return 1 + FIRST_SCALE + SCALE;
 };
 
 const getTransform = (
@@ -86,7 +86,7 @@ const Cover = ({
   onMouseUp,
 }: {
   src: string;
-  onMouseDown: EventHandler<MouseEvent>;
+  onMouseDown: EventHandler<MouseEvent | TouchEvent>;
   onMouseUp: EventHandler<MouseEvent | TouchEvent>;
 }) => (
   <button
@@ -94,8 +94,27 @@ const Cover = ({
     onTouchStart={onMouseDown}
     onMouseUp={onMouseUp}
     onTouchEnd={onMouseUp}
-    style={{ all: "unset" }}
+    style={{
+      padding: 0,
+      margin: 0,
+      background: "black",
+      border: "none",
+
+      width: COVER_SIZE,
+      height: COVER_SIZE,
+      position: "relative",
+    }}
   >
+    <div
+      style={{
+        position: "absolute",
+        top: COVER_SIZE,
+        left: 0,
+        right: 0,
+        height: COVER_SIZE,
+        background: "black",
+      }}
+    ></div>
     <img
       style={{
         width: COVER_SIZE,
@@ -103,9 +122,9 @@ const Cover = ({
 
         boxSizing: "border-box",
 
-        WebkitBoxReflect:
-          "below 0 linear-gradient(transparent, rgba(0,0,0,0), rgba(0,0,0,0.4))",
         pointerEvents: "none",
+        WebkitBoxReflect:
+          "below 0 linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.4))",
       }}
       src={src}
     />
@@ -155,7 +174,7 @@ export const Coverflow = () => {
   return (
     <div
       style={{
-        padding: "20px 0 100px calc(50% - 200px)",
+        padding: "20px 0 400px calc(50% - 200px)",
         overflow: "hidden",
       }}
     >
@@ -172,6 +191,8 @@ export const Coverflow = () => {
         }}
       >
         {covers.map((props, index) => (
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           <animated.div
             key={index}
             style={{
@@ -183,7 +204,7 @@ export const Coverflow = () => {
             }}
           >
             <Cover
-              src={`${(index % 7) + 1}.jpg`}
+              src={`${index + 1}.jpg`}
               onMouseDown={(e) => {
                 const { x, y } = e.currentTarget.getBoundingClientRect();
                 clickPosition.current = { x, y };

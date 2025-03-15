@@ -2,7 +2,7 @@ import { Coverflow } from "./Coverflow";
 
 function App() {
   return (
-    <div style={{ padding: "80px 0" }}>
+    <div style={{ height: "100vh", background: "black" }}>
       <Coverflow />
     </div>
   );
