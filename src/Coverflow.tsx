@@ -111,6 +111,8 @@ const Cover = ({
       background: "black",
       border: "none",
 
+      userSelect: "none",
+
       width: COVER_SIZE,
       height: COVER_SIZE,
       position: "relative",
@@ -124,12 +126,16 @@ const Cover = ({
         right: 0,
         height: COVER_SIZE,
         background: "black",
+
+        userSelect: "none",
       }}
     ></div>
     <img
       style={{
         width: COVER_SIZE,
         height: COVER_SIZE,
+
+        userSelect: "none",
 
         boxSizing: "border-box",
 
@@ -188,7 +194,7 @@ export const Coverflow = () => {
   return (
     <div
       style={{
-        padding: "20px 0 400px calc(50% - 200px)",
+        padding: "20px calc(50% - 200px) 400px calc(50% - 200px)",
         overflow: "hidden",
       }}
     >
