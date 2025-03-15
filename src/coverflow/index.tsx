@@ -1,8 +1,8 @@
 import { animated, useSprings } from "@react-spring/web";
 import { Handler, useGesture } from "@use-gesture/react";
-import { useRef, useState } from "react";
-import { getScore, getTransform, getBoundedX, getX } from "./util";
+import { useMemo, useRef, useState } from "react";
 import { Cover } from "./cover";
+import { Util } from "./util";
 
 const CLICK_AREA = 100;
 
@@ -12,7 +12,7 @@ export const Coverflow = ({
   backgroundColor,
 }: {
   covers: Parameters<typeof Cover>[0]["meta"][];
-  size: string;
+  size: number;
   backgroundColor: string;
 }) => {
   const clickPosition = useRef<null | { x: number; y: number }>(null);
@@ -21,20 +21,22 @@ export const Coverflow = ({
     current: 0,
   });
 
+  const util = useMemo(() => new Util(size), [size]);
+
   const [current, setCurrnet] = useState(0);
   const [baseX, setBaseX] = useState(0);
 
   const [covers, coversApi] = useSprings(coverData.length, (index) => {
-    const score = getScore(baseX) + index;
-    return getTransform(score);
+    const score = util.getScore(baseX) + index;
+    return util.getTransform(score);
   });
 
   const handler: Handler<"drag" | "wheel"> = ({ movement: [x], active }) => {
     if (active) {
       return coversApi.start((index) => {
         if (index === 0) {
-          const boundedX = getBoundedX(baseX, x, covers.length);
-          const baseScore = getScore(boundedX);
+          const boundedX = util.getBoundedX(baseX, x, covers.length);
+          const baseScore = util.getScore(boundedX);
           memo.current.baseScore = baseScore;
         }
 
@@ -43,15 +45,15 @@ export const Coverflow = ({
           memo.current.current = index;
         }
 
-        return getTransform(memo.current.baseScore + index);
+        return util.getTransform(memo.current.baseScore + index);
       });
     }
 
     const current = memo.current.current;
     setCurrnet(current);
-    setBaseX(-getX(current));
+    setBaseX(-util.getX(current));
     return coversApi.start((index) => {
-      return getTransform(index - current);
+      return util.getTransform(index - current);
     });
   };
 
@@ -63,7 +65,9 @@ export const Coverflow = ({
   return (
     <div
       style={{
-        padding: `20px calc(50% - ${size}/2) 400px calc(50% - ${size}/2)`,
+        padding: `20px calc(50% - ${size / 2}px) ${size}px calc(50% - ${
+          size / 2
+        }px)`,
         overflow: "hidden",
       }}
     >
@@ -76,7 +80,7 @@ export const Coverflow = ({
           height: size,
 
           perspective: "600px",
-          perspectiveOrigin: `calc(0% + ${size}/2) 50%`,
+          perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
         }}
       >
         {covers.map((props, index) => (
@@ -110,9 +114,9 @@ export const Coverflow = ({
                 ) {
                   const current = index;
                   setCurrnet(index);
-                  setBaseX(-getX(current));
+                  setBaseX(-util.getX(current));
                   coversApi.start((index) => {
-                    return getTransform(index - current);
+                    return util.getTransform(index - current);
                   });
                 }
                 clickPosition.current = null;

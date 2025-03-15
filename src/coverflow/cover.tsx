@@ -8,7 +8,7 @@ export const Cover = ({
   onMouseUp,
 }: {
   meta: { src: string };
-  size: string;
+  size: number;
   backgroundColor: string;
   onMouseDown: EventHandler<MouseEvent | TouchEvent>;
   onMouseUp: EventHandler<MouseEvent | TouchEvent>;

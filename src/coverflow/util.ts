@@ -1,86 +1,85 @@
-// x
-const FIRST_GAP = 220;
-const GAP = 80;
+export class Util {
+  private firstGap: number;
+  private gap: number;
+  private firstScale: number;
+  private scale: number;
+  private rubber: number;
 
-// scale
-const FIRST_SCALE = -0.2;
-const SCALE = -0.05;
+  constructor(size: number) {
+    this.firstGap = (size * 220) / 400;
+    this.gap = (size * 80) / 400;
+    this.firstScale = -0.2;
+    this.scale = -0.05;
+    this.rubber = 0.15;
+  }
 
-// rubber
-const RUBBER = 0.15;
+  getX(score: number) {
+    if (score < -1) {
+      return -this.firstGap + this.gap * (score + 1);
+    }
+    if (score < 1) {
+      return score * this.firstGap;
+    }
+    return this.firstGap + this.gap * (score - 1);
+  }
 
-export const getX = (score: number) => {
-  if (score < -1) {
-    return -FIRST_GAP + GAP * (score + 1);
+  getScore(x: number) {
+    if (x < -this.firstGap) {
+      return (x + this.firstGap) / this.gap - 1;
+    }
+    if (x < this.firstGap) {
+      return x / this.firstGap;
+    }
+    return (x - this.firstGap) / this.gap + 1;
   }
-  if (score < 1) {
-    return score * FIRST_GAP;
-  }
-  return FIRST_GAP + GAP * (score - 1);
-};
 
-export const getScore = (x: number) => {
-  if (x < -FIRST_GAP) {
-    return (x + FIRST_GAP) / GAP - 1;
+  getRotateY(score: number) {
+    if (score < -1) {
+      return 40;
+    }
+    if (score < 1) {
+      return score * -40;
+    }
+    return -40;
   }
-  if (x < FIRST_GAP) {
-    return x / FIRST_GAP;
-  }
-  return (x - FIRST_GAP) / GAP + 1;
-};
 
-export const getRotateY = (score: number) => {
-  if (score < -1) {
-    return 40;
+  getScale(score: number) {
+    if (score < -2) {
+      return 1 + this.firstScale + this.scale;
+    }
+    if (score < -1) {
+      return 1 + this.firstScale - this.scale * (score + 1);
+    }
+    if (score < 0) {
+      return 1 - this.firstScale * score;
+    }
+    if (score < 1) {
+      return 1 + this.firstScale * score;
+    }
+    if (score < 2) {
+      return 1 + this.firstScale + this.scale * (score - 1);
+    }
+    return 1 + this.firstScale + this.scale;
   }
-  if (score < 1) {
-    return score * -40;
-  }
-  return -40;
-};
 
-export const getScale = (score: number) => {
-  if (score < -2) {
-    return 1 + FIRST_SCALE + SCALE;
+  getTransform(score: number) {
+    return {
+      scale: this.getScale(score),
+      x: this.getX(score),
+      rotateY: `${this.getRotateY(score)}deg`,
+    };
   }
-  if (score < -1) {
-    return 1 + FIRST_SCALE - SCALE * (score + 1);
-  }
-  if (score < 0) {
-    return 1 - FIRST_SCALE * score;
-  }
-  if (score < 1) {
-    return 1 + FIRST_SCALE * score;
-  }
-  if (score < 2) {
-    return 1 + FIRST_SCALE + SCALE * (score - 1);
-  }
-  return 1 + FIRST_SCALE + SCALE;
-};
 
-export const getTransform = (
-  score: number
-): {
-  scale: number;
-  x: number;
-  rotateY: string;
-} => {
-  return {
-    scale: getScale(score),
-    x: getX(score),
-    rotateY: `${getRotateY(score)}deg`,
-  };
-};
-
-export const getBoundedX = (baseX: number, x: number, size: number) => {
-  const offset = baseX + x;
-  const x0 = -getX(0);
-  const xMax = -getX(size - 1);
-  if (offset > x0) {
-    return offset * RUBBER;
+  getBoundedX(baseX: number, x: number, size: number) {
+    const offset = baseX + x;
+    const x0 = -this.getX(0);
+    const xMax = -this.getX(size - 1);
+    if (offset > x0) {
+      return offset * this.rubber;
+    }
+    if (offset < xMax) {
+      return xMax + (offset - xMax) * this.rubber;
+    }
+    return offset;
   }
-  if (offset < xMax) {
-    return xMax + (offset - xMax) * RUBBER;
-  }
-  return offset;
-};
+}
