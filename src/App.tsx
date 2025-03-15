@@ -2,9 +2,9 @@ import { Coverflow } from "./coverflow";
 
 function App() {
   return (
-    <div style={{ height: "100vh", background: "black" }}>
+    <div style={{ height: "100dvh", background: "black", overflow: "hidden" }}>
       <Coverflow
-        size={400}
+        size={window.innerWidth / 3.6}
         backgroundColor="black"
         covers={Array(100)
           .fill(0)
