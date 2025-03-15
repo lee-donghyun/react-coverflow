@@ -1,4 +1,4 @@
-import { Coverflow } from "./Coverflow";
+import { Coverflow } from "./coverflow";
 
 function App() {
   return (
