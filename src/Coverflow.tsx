@@ -153,17 +153,24 @@ export const Coverflow = () => {
     return getTransform(score);
   });
 
-  const handler: Handler<"drag" | "wheel"> = ({ movement: [x], active }) => {
+  const handler: Handler<"drag" | "wheel"> = ({
+    movement: [x],
+    active,
+    memo,
+  }) => {
     if (active) {
       return coversApi.start((index) => {
-        const boundedX = getBoundedX(baseX, x, covers.length);
-        const score = getScore(boundedX) + index;
+        if (index === 0) {
+          const boundedX = getBoundedX(baseX, x, covers.length);
+          const baseScore = getScore(boundedX);
+          memo = { baseScore };
+        }
 
-        if (Math.abs(score) <= 0.5) {
+        if (Math.abs(memo.baseScore + index) <= 0.5) {
           setCurrnet(index);
         }
 
-        return getTransform(score);
+        return getTransform(memo.baseScore + index);
       });
     }
 
