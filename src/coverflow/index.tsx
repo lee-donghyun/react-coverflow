@@ -2,9 +2,17 @@ import { animated, useSprings } from "@react-spring/web";
 import { Handler, useGesture } from "@use-gesture/react";
 import { useRef, useState } from "react";
 import { getScore, getTransform, getBoundedX, getX } from "./util";
-import { Cover, COVER_SIZE } from "./cover";
+import { Cover } from "./cover";
 
-export const Coverflow = () => {
+const CLICK_AREA = 100;
+
+export const Coverflow = ({
+  covers: coverData,
+  size,
+}: {
+  covers: Parameters<typeof Cover>[0]["meta"][];
+  size: string;
+}) => {
   const clickPosition = useRef<null | { x: number; y: number }>(null);
   const memo = useRef<{ baseScore: number; current: number }>({
     baseScore: 0,
@@ -14,7 +22,7 @@ export const Coverflow = () => {
   const [current, setCurrnet] = useState(0);
   const [baseX, setBaseX] = useState(0);
 
-  const [covers, coversApi] = useSprings(100, (index) => {
+  const [covers, coversApi] = useSprings(coverData.length, (index) => {
     const score = getScore(baseX) + index;
     return getTransform(score);
   });
@@ -50,12 +58,10 @@ export const Coverflow = () => {
     onWheel: handler,
   });
 
-  // useHotKey / ("ArrowRight", () => {});
-
   return (
     <div
       style={{
-        padding: "20px calc(50% - 200px) 400px calc(50% - 200px)",
+        padding: `20px calc(50% - ${size}/2) 400px calc(50% - ${size}/2)`,
         overflow: "hidden",
       }}
     >
@@ -65,10 +71,10 @@ export const Coverflow = () => {
           touchAction: "none",
           position: "relative",
 
-          height: COVER_SIZE,
+          height: size,
 
           perspective: "600px",
-          perspectiveOrigin: "calc(0% + 200px) 50%",
+          perspectiveOrigin: `calc(0% + ${size}/2) 50%`,
         }}
       >
         {covers.map((props, index) => (
@@ -85,7 +91,8 @@ export const Coverflow = () => {
             }}
           >
             <Cover
-              src={`${(index % 10) + 1}.jpg`}
+              meta={coverData[index]}
+              size={size}
               onMouseDown={(e) => {
                 const { x, y } = e.currentTarget.getBoundingClientRect();
                 clickPosition.current = { x, y };
@@ -96,7 +103,7 @@ export const Coverflow = () => {
                 if (
                   (clickPosition.current.x - x) ** 2 +
                     (clickPosition.current.y - y) ** 2 <
-                  100
+                  CLICK_AREA
                 ) {
                   const current = index;
                   setCurrnet(index);

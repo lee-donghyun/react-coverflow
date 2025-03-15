@@ -1,13 +1,13 @@
 import { EventHandler, MouseEvent, TouchEvent } from "react";
 
-export const COVER_SIZE = 400;
-
 export const Cover = ({
-  src,
+  size,
+  meta,
   onMouseDown,
   onMouseUp,
 }: {
-  src: string;
+  meta: { src: string };
+  size: string;
   onMouseDown: EventHandler<MouseEvent | TouchEvent>;
   onMouseUp: EventHandler<MouseEvent | TouchEvent>;
 }) => (
@@ -25,18 +25,18 @@ export const Cover = ({
 
       userSelect: "none",
 
-      width: COVER_SIZE,
-      height: COVER_SIZE,
+      width: size,
+      height: size,
       position: "relative",
     }}
   >
     <div
       style={{
         position: "absolute",
-        top: COVER_SIZE,
+        top: size,
         left: 0,
         right: 0,
-        height: COVER_SIZE,
+        height: size,
         background: "black",
 
         userSelect: "none",
@@ -44,8 +44,8 @@ export const Cover = ({
     ></div>
     <img
       style={{
-        width: COVER_SIZE,
-        height: COVER_SIZE,
+        width: size,
+        height: size,
 
         userSelect: "none",
 
@@ -55,7 +55,7 @@ export const Cover = ({
         WebkitBoxReflect:
           "below 0 linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.4))",
       }}
-      src={src}
+      src={meta.src}
     />
   </button>
 );
