@@ -10,10 +10,14 @@ export const Coverflow = ({
   covers: coverData,
   size,
   backgroundColor,
+  onChange,
+  onSelected,
 }: {
   covers: Parameters<typeof Cover>[0]["meta"][];
   size: number;
   backgroundColor: string;
+  onChange?: (index: number) => void;
+  onSelected?: (index: number) => void;
 }) => {
   const clickPosition = useRef<null | { x: number; y: number }>(null);
   const memo = useRef<{ baseScore: number; current: number }>({
@@ -43,6 +47,7 @@ export const Coverflow = ({
         if (Math.abs(memo.current.baseScore + index) <= 0.5) {
           setCurrnet(index);
           memo.current.current = index;
+          onChange?.(index);
         }
 
         return util.getTransform(memo.current.baseScore + index);
@@ -52,6 +57,7 @@ export const Coverflow = ({
     const current = memo.current.current;
     setCurrnet(current);
     setBaseX(-util.getX(current));
+    onSelected?.(current);
     return coversApi.start((index) => {
       return util.getTransform(index - current);
     });
@@ -115,6 +121,8 @@ export const Coverflow = ({
                   const current = index;
                   setCurrnet(index);
                   setBaseX(-util.getX(current));
+                  onChange?.(current);
+                  onSelected?.(current);
                   coversApi.start((index) => {
                     return util.getTransform(index - current);
                   });
