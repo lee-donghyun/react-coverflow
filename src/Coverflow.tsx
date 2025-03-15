@@ -1,10 +1,5 @@
 import { animated, useSprings } from "@react-spring/web";
-import {
-  DragConfig,
-  Handler,
-  useGesture,
-  UserWheelConfig,
-} from "@use-gesture/react";
+import { Handler, useGesture } from "@use-gesture/react";
 import { MouseEvent, TouchEvent, EventHandler, useRef, useState } from "react";
 
 const COVER_SIZE = 400;
@@ -16,6 +11,9 @@ const GAP = 80;
 // scale
 const FIRST_SCALE = -0.2;
 const SCALE = -0.05;
+
+// rubber
+const RUBBER = 0.15;
 
 const getX = (score: number) => {
   if (score < -1) {
@@ -78,6 +76,19 @@ const getTransform = (
     x: getX(score),
     rotateY: `${getRotateY(score)}deg`,
   };
+};
+
+const getBoundedX = (baseX: number, x: number, size: number) => {
+  const offset = baseX + x;
+  const x0 = -getX(0);
+  const xMax = -getX(size - 1);
+  if (offset > x0) {
+    return offset * RUBBER;
+  }
+  if (offset < xMax) {
+    return xMax + (offset - xMax) * RUBBER;
+  }
+  return offset;
 };
 
 const Cover = ({
@@ -145,7 +156,8 @@ export const Coverflow = () => {
   const handler: Handler<"drag" | "wheel"> = ({ movement: [x], active }) => {
     if (active) {
       return coversApi.start((index) => {
-        const score = getScore(baseX + x) + index;
+        const boundedX = getBoundedX(baseX, x, covers.length);
+        const score = getScore(boundedX) + index;
 
         if (Math.abs(score) <= 0.5) {
           setCurrnet(index);
@@ -161,15 +173,7 @@ export const Coverflow = () => {
     });
   };
 
-  const config: DragConfig & UserWheelConfig = {
-    bounds: { right: 0, left: -(getX(covers.length) + COVER_SIZE) },
-    rubberband: true,
-  };
-
-  const bind = useGesture(
-    { onDrag: handler, onWheel: handler },
-    { drag: config, wheel: config }
-  );
+  const bind = useGesture({ onDrag: handler, onWheel: handler });
 
   return (
     <div
@@ -230,7 +234,6 @@ export const Coverflow = () => {
           </animated.div>
         ))}
       </div>
-      {current}
     </div>
   );
 };
