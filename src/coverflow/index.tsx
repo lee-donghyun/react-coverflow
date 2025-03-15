@@ -9,9 +9,11 @@ const CLICK_AREA = 100;
 export const Coverflow = ({
   covers: coverData,
   size,
+  backgroundColor,
 }: {
   covers: Parameters<typeof Cover>[0]["meta"][];
   size: string;
+  backgroundColor: string;
 }) => {
   const clickPosition = useRef<null | { x: number; y: number }>(null);
   const memo = useRef<{ baseScore: number; current: number }>({
@@ -92,6 +94,7 @@ export const Coverflow = ({
           >
             <Cover
               meta={coverData[index]}
+              backgroundColor={backgroundColor}
               size={size}
               onMouseDown={(e) => {
                 const { x, y } = e.currentTarget.getBoundingClientRect();

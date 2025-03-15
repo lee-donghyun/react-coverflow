@@ -8,6 +8,7 @@ function App() {
           .fill(0)
           .map((_, index) => ({ src: `${(index % 10) + 1}.jpg` }))}
         size={`400px`}
+        backgroundColor={"black"}
       />
     </div>
   );

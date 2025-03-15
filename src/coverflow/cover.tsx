@@ -3,11 +3,13 @@ import { EventHandler, MouseEvent, TouchEvent } from "react";
 export const Cover = ({
   size,
   meta,
+  backgroundColor,
   onMouseDown,
   onMouseUp,
 }: {
   meta: { src: string };
   size: string;
+  backgroundColor: string;
   onMouseDown: EventHandler<MouseEvent | TouchEvent>;
   onMouseUp: EventHandler<MouseEvent | TouchEvent>;
 }) => (
@@ -20,7 +22,6 @@ export const Cover = ({
     style={{
       padding: 0,
       margin: 0,
-      background: "black",
       border: "none",
 
       userSelect: "none",
@@ -37,7 +38,7 @@ export const Cover = ({
         left: 0,
         right: 0,
         height: size,
-        background: "black",
+        backgroundColor,
 
         userSelect: "none",
       }}
