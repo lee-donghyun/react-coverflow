@@ -65,7 +65,7 @@ export const Coverflow = ({
   return (
     <div
       style={{
-        padding: `20px calc(50% - ${size / 2}px) ${size}px calc(50% - ${
+        padding: `${size}px calc(50% - ${size / 2}px) ${size}px calc(50% - ${
           size / 2
         }px)`,
         overflow: "hidden",
