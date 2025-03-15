@@ -144,36 +144,39 @@ const Cover = ({
 
 export const Coverflow = () => {
   const clickPosition = useRef<null | { x: number; y: number }>(null);
+  const memo = useRef<{ baseScore: number; current: number }>({
+    baseScore: 0,
+    current: 0,
+  });
 
   const [current, setCurrnet] = useState(0);
   const [baseX, setBaseX] = useState(0);
 
-  const [covers, coversApi] = useSprings(10, (index) => {
+  const [covers, coversApi] = useSprings(100, (index) => {
     const score = getScore(baseX) + index;
     return getTransform(score);
   });
 
-  const handler: Handler<"drag" | "wheel"> = ({
-    movement: [x],
-    active,
-    memo,
-  }) => {
+  const handler: Handler<"drag" | "wheel"> = ({ movement: [x], active }) => {
     if (active) {
       return coversApi.start((index) => {
         if (index === 0) {
           const boundedX = getBoundedX(baseX, x, covers.length);
           const baseScore = getScore(boundedX);
-          memo = { baseScore };
+          memo.current.baseScore = baseScore;
         }
 
-        if (Math.abs(memo.baseScore + index) <= 0.5) {
+        if (Math.abs(memo.current.baseScore + index) <= 0.5) {
           setCurrnet(index);
+          memo.current.current = index;
         }
 
-        return getTransform(memo.baseScore + index);
+        return getTransform(memo.current.baseScore + index);
       });
     }
 
+    const current = memo.current.current;
+    setCurrnet(current);
     setBaseX(-getX(current));
     return coversApi.start((index) => {
       return getTransform(index - current);
@@ -215,7 +218,7 @@ export const Coverflow = () => {
             }}
           >
             <Cover
-              src={`${index + 1}.jpg`}
+              src={`${(index % 10) + 1}.jpg`}
               onMouseDown={(e) => {
                 const { x, y } = e.currentTarget.getBoundingClientRect();
                 clickPosition.current = { x, y };
