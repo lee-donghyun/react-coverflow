@@ -35,6 +35,16 @@ export const Coverflow = ({
     return util.getTransform(score);
   });
 
+  const setCurrentCover = (current: number) => {
+    setCurrnet(current);
+    setBaseX(-util.getX(current));
+    onChange?.(current);
+    onSelected?.(current);
+    return coversApi.start((index) => {
+      return util.getTransform(index - current);
+    });
+  };
+
   const handler: Handler<"drag" | "wheel"> = ({ movement: [x], active }) => {
     if (active) {
       return coversApi.start((index) => {
@@ -55,12 +65,7 @@ export const Coverflow = ({
     }
 
     const current = memo.current.current;
-    setCurrnet(current);
-    setBaseX(-util.getX(current));
-    onSelected?.(current);
-    return coversApi.start((index) => {
-      return util.getTransform(index - current);
-    });
+    setCurrentCover(current);
   };
 
   const bind = useGesture({
@@ -119,13 +124,7 @@ export const Coverflow = ({
                   CLICK_AREA
                 ) {
                   const current = index;
-                  setCurrnet(index);
-                  setBaseX(-util.getX(current));
-                  onChange?.(current);
-                  onSelected?.(current);
-                  coversApi.start((index) => {
-                    return util.getTransform(index - current);
-                  });
+                  setCurrentCover(current);
                 }
                 clickPosition.current = null;
               }}
