@@ -68,10 +68,13 @@ export const Coverflow = ({
     setCurrentCover(current);
   };
 
-  const bind = useGesture({
-    onDrag: handler,
-    onWheel: handler,
-  });
+  const bind = useGesture(
+    {
+      onDrag: handler,
+      onWheel: handler,
+    },
+    { drag: { keyboardDisplacement: size / 10 } }
+  );
 
   return (
     <div

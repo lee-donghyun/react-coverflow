@@ -29,6 +29,7 @@ export const Cover = ({
       width: size,
       height: size,
       position: "relative",
+      outline: "none",
     }}
   >
     <div
