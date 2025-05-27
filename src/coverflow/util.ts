@@ -36,7 +36,7 @@ export class Util {
   }
 
   /**
-   * inverse of getX
+   * inverse of getX. only used for calculating the score based on the x position of the first cover.
    * @param x - the x position
    * @returns score
    */
