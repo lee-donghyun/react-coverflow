@@ -20,47 +20,50 @@ export const Coverflow = ({
   onSelected?: (index: number) => void;
 }) => {
   const clickPosition = useRef<null | { x: number; y: number }>(null);
-  const memo = useRef<{ baseScore: number; current: number }>({
-    baseScore: 0,
+  const memo = useRef<{ current: number; prevCurrent: number }>({
     current: 0,
+    prevCurrent: 0,
   });
 
   const util = useMemo(() => new Util(size), [size]);
 
   const [current, setCurrnet] = useState(0);
-  const [baseX, setBaseX] = useState(0);
 
-  const [covers, coversApi] = useSprings(coverData.length, (index) => {
-    const score = util.getScore(baseX) + index;
+  const [covers, coversApi] = useSprings(coverData.length, (score) => {
     return util.getTransform(score);
   });
 
   const setCurrentCover = (current: number) => {
     setCurrnet(current);
-    setBaseX(-util.getX(current));
     onChange?.(current);
     onSelected?.(current);
+    memo.current.prevCurrent = current;
     return coversApi.start((index) => {
       return util.getTransform(index - current);
     });
   };
 
-  const handler: Handler<"drag" | "wheel"> = ({ movement: [x], active }) => {
+  const handler: Handler<"drag" | "wheel"> = ({
+    movement: [movementX],
+    active,
+  }) => {
     if (active) {
-      return coversApi.start((index) => {
-        if (index === 0) {
-          const boundedX = util.getBoundedX(baseX, x, covers.length);
-          const baseScore = util.getScore(boundedX);
-          memo.current.baseScore = baseScore;
-        }
+      const { prevCurrent } = memo.current;
 
-        if (Math.abs(memo.current.baseScore + index) <= 0.5) {
+      const diffScore = util.getDiffScore(
+        movementX,
+        prevCurrent,
+        covers.length
+      );
+
+      return coversApi.start((index) => {
+        const score = index - prevCurrent + diffScore;
+        if (Math.abs(score) <= 0.5) {
           setCurrnet(index);
           memo.current.current = index;
           onChange?.(index);
         }
-
-        return util.getTransform(memo.current.baseScore + index);
+        return util.getTransform(score);
       });
     }
 
