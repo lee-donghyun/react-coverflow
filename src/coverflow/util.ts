@@ -4,6 +4,7 @@ export class Util {
   private scaleWeightRegion1: number;
   private scaleWeightRegion2: number;
   private rubber: number;
+  private scrollSpeed: number;
 
   constructor(size: number) {
     this.xWeightRegion1 = size * 0.55;
@@ -11,15 +12,17 @@ export class Util {
     this.scaleWeightRegion1 = -0.2;
     this.scaleWeightRegion2 = -0.05;
     this.rubber = 0.15;
+    this.scrollSpeed = size / 40_000;
   }
 
   /**
    * get the x position of the cover based on its score
    * ```
-   *     x                   x
+   *     │                   x
    *     │                   │
-   *   0 ┼─────────x         │
-   *     ┼─────────┼─────────┼─
+   *   0 ┼─────────x─────────┼
+   *     |         │         │
+   *     x         │         │
    *    -1         0         1
    * ```
    * @param score - the score of the cover, which is the index of the cover in the array
@@ -33,21 +36,6 @@ export class Util {
       return score * this.xWeightRegion1;
     }
     return this.xWeightRegion1 + this.xWeightRegion2 * (score - 1);
-  }
-
-  /**
-   * inverse of getX. only used for calculating the score based on the x position of the first cover.
-   * @param x - the x position
-   * @returns score
-   */
-  getScore(x: number) {
-    if (x < -this.xWeightRegion1) {
-      return (x + this.xWeightRegion1) / this.xWeightRegion2 - 1;
-    }
-    if (x < this.xWeightRegion1) {
-      return x / this.xWeightRegion1;
-    }
-    return (x - this.xWeightRegion1) / this.xWeightRegion2 + 1;
   }
 
   /**
@@ -116,24 +104,23 @@ export class Util {
       rotateY: `${this.getRotateY(score)}deg`,
     };
   }
+  getDiffScore(movementX: number, current: number, size: number) {
+    const draftDiffScore = movementX * this.scrollSpeed;
 
-  /**
-   * multiply the x position by a rubber band effect
-   * @param baseX
-   * @param x
-   * @param size
-   * @returns the bounded x position`
-   */
-  getBoundedX(baseX: number, x: number, size: number) {
-    const offset = baseX + x;
-    const x0 = -this.getX(0);
-    const xMax = -this.getX(size - 1);
-    if (offset > x0) {
-      return offset * this.rubber;
+    const getDraftScore = (index: number) => index - current + draftDiffScore;
+
+    const lastElementDraftScore = getDraftScore(size - 1);
+    if (lastElementDraftScore > size - 1) {
+      const extra = lastElementDraftScore - (size - 1);
+      return draftDiffScore - extra + extra * this.rubber;
     }
-    if (offset < xMax) {
-      return xMax + (offset - xMax) * this.rubber;
+
+    const fisrtElementDraftScore = getDraftScore(0);
+    if (fisrtElementDraftScore < -(size - 1)) {
+      const extra = fisrtElementDraftScore - -(size - 1);
+      return draftDiffScore - extra + extra * this.rubber;
     }
-    return offset;
+
+    return draftDiffScore;
   }
 }
