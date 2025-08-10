@@ -1,5 +1,5 @@
 export class Util {
-  delay = 300;
+  delay = 200;
   getInvisibleTransform() {
     return {
       opacity: 0,
