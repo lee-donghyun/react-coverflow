@@ -122,16 +122,22 @@ export const Coverflow = ({
                 clickPosition.current = { x, y };
               }}
               onMouseUp={(e) => {
-                const { x, y } = e.currentTarget.getBoundingClientRect();
-                if (clickPosition.current === null) return;
-                if (
-                  (clickPosition.current.x - x) ** 2 +
-                    (clickPosition.current.y - y) ** 2 <
-                  CLICK_AREA
-                ) {
-                  const current = index;
-                  setCurrentCover(current);
+                if (clickPosition.current === null) {
+                  return;
                 }
+
+                const { x, y } = e.currentTarget.getBoundingClientRect();
+                const { x: clickX, y: clickY } = clickPosition.current;
+                if (Math.hypot(clickX - x, clickY - y) > CLICK_AREA) {
+                  return;
+                }
+
+                if (current === index) {
+                  console.log("flipping cover", index);
+                  return;
+                }
+
+                setCurrentCover(index);
                 clickPosition.current = null;
               }}
             />
