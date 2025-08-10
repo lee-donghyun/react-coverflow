@@ -7,6 +7,27 @@ import { Util as ModalUtil } from "./modal.util";
 
 const CLICK_AREA = 100;
 
+const ts = [
+  "Take Kare",
+  "Quarterback",
+  "Rarri",
+  "Stunna",
+  "Best Friend",
+  "Power",
+  "Calling Your Name",
+  "No Way",
+  "Mine",
+  "Freaky",
+  "Be Me See Me",
+  "Overdosin",
+  "Again",
+  "That's All",
+  "UDiggWhatImSayin",
+  "Draw Down",
+  "Wood Would",
+  "Wanna Be Me",
+];
+
 export const Coverflow = ({
   covers: coverData,
   size,
@@ -171,11 +192,61 @@ export const Coverflow = ({
             style={{
               width: size,
               height: size,
-              padding: "1rem",
-              backgroundColor,
+              padding: "2rem",
+              backgroundColor: "#FFF",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
-            여기에 데이터 입력
+            <h2
+              style={{
+                backgroundImage: `url(${coverData[current].src})`,
+                backgroundSize: "cover",
+                backgroundRepeat: "no-repeat",
+                color: "rgb(0 0 0 / 20%)",
+                fontSize: "3rem",
+                lineHeight: "0.8",
+                letterSpacing: "-0.05em",
+                fontFamily: "Inter, sans-serif",
+                fontWeight: 700,
+                backgroundClip: "text",
+              }}
+            >
+              Slime Season 3
+            </h2>
+            <ol
+              style={{
+                paddingLeft: "0",
+                marginTop: "2rem",
+                listStyleType: "none",
+                overflowY: "scroll",
+                flex: 1,
+              }}
+            >
+              {ts.map((title, index) => (
+                <li
+                  key={index}
+                  style={{
+                    fontSize: "1rem",
+                    fontFamily: "Inter, sans-serif",
+                    letterSpacing: "-0.03em",
+                    fontWeight: 700,
+                    color: "rgb(0 0 0 / 80%)",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "0.7rem",
+                      display: "inline-block",
+                      width: "1.2rem",
+                    }}
+                  >
+                    {index}.
+                  </span>
+                  {title}
+                </li>
+              ))}
+            </ol>
           </div>
         </animated.div>
       </div>
