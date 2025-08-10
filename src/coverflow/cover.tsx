@@ -13,23 +13,11 @@ export const Cover = ({
   onMouseDown: EventHandler<MouseEvent | TouchEvent>;
   onMouseUp: EventHandler<MouseEvent | TouchEvent>;
 }) => (
-  <button
-    onMouseDown={onMouseDown}
-    onTouchStart={onMouseDown}
-    onMouseUp={onMouseUp}
-    onTouchEnd={onMouseUp}
-    tabIndex={-1}
+  <div
     style={{
-      padding: 0,
-      margin: 0,
-      border: "none",
-
-      userSelect: "none",
-
       width: size,
       height: size,
       position: "relative",
-      outline: "none",
     }}
   >
     <div
@@ -44,20 +32,28 @@ export const Cover = ({
         userSelect: "none",
       }}
     ></div>
-    <img
-      style={{
-        width: size,
-        height: size,
+    <button
+      style={{ all: "unset", cursor: "pointer" }}
+      onMouseDown={onMouseDown}
+      onTouchStart={onMouseDown}
+      onMouseUp={onMouseUp}
+      onTouchEnd={onMouseUp}
+    >
+      <img
+        style={{
+          width: size,
+          height: size,
 
-        userSelect: "none",
+          userSelect: "none",
 
-        boxSizing: "border-box",
+          boxSizing: "border-box",
 
-        pointerEvents: "none",
-        WebkitBoxReflect:
-          "below 0 linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.4))",
-      }}
-      src={meta.src}
-    />
-  </button>
+          pointerEvents: "none",
+          WebkitBoxReflect:
+            "below 0 linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.4))",
+        }}
+        src={meta.src}
+      />
+    </button>
+  </div>
 );
