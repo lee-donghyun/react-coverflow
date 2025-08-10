@@ -1,11 +1,19 @@
 import { animated, useSpring, useSprings } from "@react-spring/web";
 import { Handler, useGesture } from "@use-gesture/react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useReducer, useRef, useState } from "react";
 import { Cover } from "./cover";
+import { Dialog } from "@ark-ui/react/dialog";
+import { Portal } from "@ark-ui/react/portal";
 import { Util as CoverUtil } from "./cover.util";
 import { Util as ModalUtil } from "./modal.util";
 
 const CLICK_AREA = 100;
+
+enum State {
+  IDLE,
+  DRAGGING,
+  MODAL,
+}
 
 const ts = [
   "Take Kare",
@@ -28,6 +36,35 @@ const ts = [
   "Wanna Be Me",
 ];
 
+const machine = (state: State, payload: State): State => {
+  switch (state) {
+    case State.IDLE:
+      switch (payload) {
+        case State.DRAGGING:
+          return State.DRAGGING;
+        case State.MODAL:
+          return State.MODAL;
+        default:
+          return state;
+      }
+    case State.DRAGGING:
+      switch (payload) {
+        case State.IDLE:
+          return State.IDLE;
+        default:
+          return state;
+      }
+    case State.MODAL:
+      switch (payload) {
+        case State.IDLE:
+          return State.IDLE;
+        default:
+          return state;
+      }
+    default:
+      return state;
+  }
+};
 export const Coverflow = ({
   covers: coverData,
   size,
@@ -51,6 +88,7 @@ export const Coverflow = ({
   const modalUtil = useMemo(() => new ModalUtil(), []);
 
   const [current, setCurrnet] = useState(0);
+  const [state, dispatch] = useReducer(machine, State.IDLE);
 
   const [covers, coversApi] = useSprings(coverData.length, (score) => {
     return coverUtil.getTransform(score);
@@ -69,6 +107,7 @@ export const Coverflow = ({
   };
 
   const clickHandler = (target: number) => {
+    dispatch(State.MODAL);
     coversApi.start((index) => {
       if (index === target) {
         modalApi.start(modalUtil.getVisibleTransform());
@@ -114,142 +153,176 @@ export const Coverflow = ({
   );
 
   return (
-    <div
-      style={{
-        padding: `${size}px calc(50% - ${size / 2}px) ${size}px calc(50% - ${
-          size / 2
-        }px)`,
-        overflow: "hidden",
-      }}
-    >
+    <>
       <div
-        {...bind()}
         style={{
-          touchAction: "none",
-          position: "relative",
-
-          height: size,
-
-          perspective: "600px",
-          perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
+          padding: `${size}px calc(50% - ${size / 2}px) ${size}px calc(50% - ${
+            size / 2
+          }px)`,
+          overflow: "hidden",
         }}
       >
-        {covers.map((props, index) => (
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          <animated.div
-            key={index}
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              zIndex: covers.length - Math.abs(current - index),
-              ...props,
-            }}
-          >
-            <Cover
-              meta={coverData[index]}
-              backgroundColor={backgroundColor}
-              size={size}
-              onMouseDown={(e) => {
-                const { x, y } = e.currentTarget.getBoundingClientRect();
-                clickPosition.current = { x, y };
-              }}
-              onMouseUp={(e) => {
-                if (clickPosition.current === null) {
-                  return;
-                }
-
-                const { x, y } = e.currentTarget.getBoundingClientRect();
-                const { x: clickX, y: clickY } = clickPosition.current;
-                if (Math.hypot(clickX - x, clickY - y) > CLICK_AREA) {
-                  return;
-                }
-
-                if (current === index) {
-                  clickHandler(index);
-                  return;
-                }
-
-                setCurrentCover(index);
-                clickPosition.current = null;
-              }}
-            />
-          </animated.div>
-        ))}
-        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-        {/* @ts-ignore */}
-        <animated.div
+        <div
+          {...bind()}
           style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            zIndex: covers.length + 1,
-            ...modal,
+            touchAction: "none",
+            position: "relative",
+
+            height: size,
+
+            perspective: "600px",
+            perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
           }}
         >
-          <div
+          {covers.map((props, index) => (
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            <animated.div
+              key={index}
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                zIndex: covers.length - Math.abs(current - index),
+                ...props,
+              }}
+            >
+              <Cover
+                meta={coverData[index]}
+                backgroundColor={backgroundColor}
+                size={size}
+                onMouseDown={(e) => {
+                  const { x, y } = e.currentTarget.getBoundingClientRect();
+                  clickPosition.current = { x, y };
+                }}
+                onMouseUp={(e) => {
+                  if (clickPosition.current === null) {
+                    return;
+                  }
+
+                  const { x, y } = e.currentTarget.getBoundingClientRect();
+                  const { x: clickX, y: clickY } = clickPosition.current;
+                  if (Math.hypot(clickX - x, clickY - y) > CLICK_AREA) {
+                    return;
+                  }
+
+                  if (current === index) {
+                    clickHandler(index);
+                    return;
+                  }
+
+                  setCurrentCover(index);
+                  clickPosition.current = null;
+                }}
+              />
+            </animated.div>
+          ))}
+        </div>
+      </div>
+      <Dialog.Root
+        open={state === State.MODAL}
+        present
+        onOpenChange={({ open }) => {
+          if (!open) {
+            dispatch(State.IDLE);
+            modalApi.start(modalUtil.getInvisibleTransform());
+            coversApi.start((index) => ({
+              ...coverUtil.getTransform(index - current),
+              delay: modalUtil.delay,
+            }));
+          }
+        }}
+      >
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner
             style={{
-              width: size,
-              height: size,
-              padding: "2rem",
-              backgroundColor: "#FFF",
+              alignItems: "center",
               display: "flex",
-              flexDirection: "column",
+              justifyContent: "center",
+              left: "0",
+              overflow: "auto",
+              position: "fixed",
+              top: "0",
+              width: "100vw",
+              height: "100dvh",
+              zIndex: "modal",
             }}
           >
-            <h2
+            <Dialog.Content
               style={{
-                backgroundImage: `url(${coverData[current].src})`,
-                backgroundSize: "cover",
-                backgroundRepeat: "no-repeat",
-                color: "rgb(0 0 0 / 20%)",
-                fontSize: "3rem",
-                lineHeight: "0.8",
-                letterSpacing: "-0.05em",
-                fontFamily: "Inter, sans-serif",
-                fontWeight: 700,
-                backgroundClip: "text",
+                perspective: "600px",
+                perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
               }}
             >
-              Slime Season 3
-            </h2>
-            <ol
-              style={{
-                paddingLeft: "0",
-                marginTop: "2rem",
-                listStyleType: "none",
-                overflowY: "scroll",
-                flex: 1,
-              }}
-            >
-              {ts.map((title, index) => (
-                <li
-                  key={index}
+              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+              {/* @ts-ignore */}
+              <animated.div style={modal}>
+                <div
                   style={{
-                    fontSize: "1rem",
-                    fontFamily: "Inter, sans-serif",
-                    letterSpacing: "-0.03em",
-                    fontWeight: 700,
-                    color: "rgb(0 0 0 / 80%)",
+                    width: size,
+                    height: size,
+                    padding: "2rem",
+                    backgroundColor: "#FFF",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  <span
+                  <h2
                     style={{
-                      fontSize: "0.7rem",
-                      display: "inline-block",
-                      width: "1.2rem",
+                      backgroundImage: `url(${coverData[current].src})`,
+                      backgroundSize: "cover",
+                      backgroundRepeat: "no-repeat",
+                      color: "rgb(0 0 0 / 20%)",
+                      fontSize: "3rem",
+                      lineHeight: "0.8",
+                      letterSpacing: "-0.05em",
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 700,
+                      backgroundClip: "text",
                     }}
                   >
-                    {index}.
-                  </span>
-                  {title}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </animated.div>
-      </div>
-    </div>
+                    Slime Season 3
+                  </h2>
+                  <ol
+                    style={{
+                      paddingLeft: "0",
+                      marginTop: "2rem",
+                      listStyleType: "none",
+                      overflowY: "scroll",
+                      flex: 1,
+                    }}
+                  >
+                    {ts.map((title, index) => (
+                      <li
+                        key={index}
+                        style={{
+                          fontSize: "1rem",
+                          fontFamily: "Inter, sans-serif",
+                          letterSpacing: "-0.03em",
+                          fontWeight: 700,
+                          color: "rgb(0 0 0 / 80%)",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "0.7rem",
+                            display: "inline-block",
+                            width: "1.2rem",
+                          }}
+                        >
+                          {index}.
+                        </span>
+                        {title}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </animated.div>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+    </>
   );
 };
