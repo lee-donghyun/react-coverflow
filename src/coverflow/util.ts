@@ -102,6 +102,7 @@ export class Util {
       scale: this.getScale(score),
       x: this.getX(score),
       rotateY: `${this.getRotateY(score)}deg`,
+      opacity: 1,
     };
   }
   getDiffScore(movementX: number, current: number, size: number) {

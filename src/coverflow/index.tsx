@@ -43,7 +43,19 @@ export const Coverflow = ({
     });
   };
 
-  const handler: Handler<"drag" | "wheel"> = ({
+  const clickHandler = (target: number) => {
+    coversApi.start((index) => {
+      if (index === target) {
+        return {
+          rotateY: "90deg",
+          opacity: 0.2,
+          config: { duration: 300 },
+        };
+      }
+    });
+  };
+
+  const dragHandler: Handler<"drag" | "wheel"> = ({
     movement: [movementX],
     active,
   }) => {
@@ -73,8 +85,8 @@ export const Coverflow = ({
 
   const bind = useGesture(
     {
-      onDrag: handler,
-      onWheel: handler,
+      onDrag: dragHandler,
+      onWheel: dragHandler,
     },
     { drag: { keyboardDisplacement: size / 10 } }
   );
@@ -133,7 +145,7 @@ export const Coverflow = ({
                 }
 
                 if (current === index) {
-                  console.log("flipping cover", index);
+                  clickHandler(index);
                   return;
                 }
 
