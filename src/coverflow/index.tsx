@@ -1,4 +1,4 @@
-import { animated, useSprings } from "@react-spring/web";
+import { animated, useSpring, useSprings } from "@react-spring/web";
 import { Handler, useGesture } from "@use-gesture/react";
 import { useMemo, useRef, useState } from "react";
 import { Cover } from "./cover";
@@ -33,6 +33,12 @@ export const Coverflow = ({
     return util.getTransform(score);
   });
 
+  const [modal, modalApi] = useSpring(() => ({
+    opacity: 0,
+    scale: 1,
+    rotateY: "-90deg",
+  }));
+
   const setCurrentCover = (current: number) => {
     setCurrnet(current);
     onChange?.(current);
@@ -46,6 +52,13 @@ export const Coverflow = ({
   const clickHandler = (target: number) => {
     coversApi.start((index) => {
       if (index === target) {
+        modalApi.start({
+          opacity: 1,
+          scale: 1.5,
+          delay: 300,
+          rotateY: "0deg",
+          config: { duration: 300 },
+        });
         return {
           rotateY: "90deg",
           opacity: 0.2,
@@ -155,6 +168,28 @@ export const Coverflow = ({
             />
           </animated.div>
         ))}
+        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+        {/* @ts-ignore */}
+        <animated.div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            zIndex: covers.length + 1,
+            ...modal,
+          }}
+        >
+          <div
+            style={{
+              width: size,
+              height: size,
+              padding: "1rem",
+              backgroundColor,
+            }}
+          >
+            여기에 데이터 입력
+          </div>
+        </animated.div>
       </div>
     </div>
   );
