@@ -28,7 +28,7 @@ export class Util {
    * @param score - the score of the cover, which is the index of the cover in the array
    * @returns
    */
-  getX(score: number) {
+  private getX(score: number) {
     if (score < -1) {
       return -this.xWeightRegion1 + this.xWeightRegion2 * (score + 1);
     }
@@ -50,7 +50,7 @@ export class Util {
    * @param score - the score of the cover, which is the index of the cover in the array
    * @returns
    */
-  getRotateY(score: number) {
+  private getRotateY(score: number) {
     if (score < -1) {
       return 40;
     }
@@ -74,7 +74,7 @@ export class Util {
    * @param score - the score of the cover, which is the index of the cover in the array
    * @returns
    */
-  getScale(score: number) {
+  private getScale(score: number) {
     if (score < -2) {
       return 1 + this.scaleWeightRegion1 + this.scaleWeightRegion2;
     }

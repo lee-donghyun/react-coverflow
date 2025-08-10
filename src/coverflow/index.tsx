@@ -2,7 +2,8 @@ import { animated, useSpring, useSprings } from "@react-spring/web";
 import { Handler, useGesture } from "@use-gesture/react";
 import { useMemo, useRef, useState } from "react";
 import { Cover } from "./cover";
-import { Util } from "./util";
+import { Util as CoverUtil } from "./cover.util";
+import { Util as ModalUtil } from "./modal.util";
 
 const CLICK_AREA = 100;
 
@@ -25,19 +26,16 @@ export const Coverflow = ({
     prevCurrent: 0,
   });
 
-  const util = useMemo(() => new Util(size), [size]);
+  const coverUtil = useMemo(() => new CoverUtil(size), [size]);
+  const modalUtil = useMemo(() => new ModalUtil(), []);
 
   const [current, setCurrnet] = useState(0);
 
   const [covers, coversApi] = useSprings(coverData.length, (score) => {
-    return util.getTransform(score);
+    return coverUtil.getTransform(score);
   });
 
-  const [modal, modalApi] = useSpring(() => ({
-    opacity: 0,
-    scale: 1,
-    rotateY: "-90deg",
-  }));
+  const [modal, modalApi] = useSpring(() => modalUtil.getInvisibleTransform());
 
   const setCurrentCover = (current: number) => {
     setCurrnet(current);
@@ -45,25 +43,15 @@ export const Coverflow = ({
     onSelected?.(current);
     memo.current.prevCurrent = current;
     return coversApi.start((index) => {
-      return util.getTransform(index - current);
+      return coverUtil.getTransform(index - current);
     });
   };
 
   const clickHandler = (target: number) => {
     coversApi.start((index) => {
       if (index === target) {
-        modalApi.start({
-          opacity: 1,
-          scale: 1.5,
-          delay: 300,
-          rotateY: "0deg",
-          config: { duration: 300 },
-        });
-        return {
-          rotateY: "90deg",
-          opacity: 0.2,
-          config: { duration: 300 },
-        };
+        modalApi.start(modalUtil.getVisibleTransform());
+        return modalUtil.getFlippedCoverTransform();
       }
     });
   };
@@ -75,7 +63,7 @@ export const Coverflow = ({
     if (active) {
       const { prevCurrent } = memo.current;
 
-      const diffScore = util.getDiffScore(
+      const diffScore = coverUtil.getDiffScore(
         movementX,
         prevCurrent,
         covers.length
@@ -88,7 +76,7 @@ export const Coverflow = ({
           memo.current.current = index;
           onChange?.(index);
         }
-        return util.getTransform(score);
+        return coverUtil.getTransform(score);
       });
     }
 
