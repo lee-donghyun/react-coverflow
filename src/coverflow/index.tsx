@@ -207,6 +207,7 @@ export const Coverflow = ({
 
                   const { x, y } = e.currentTarget.getBoundingClientRect();
                   const { x: clickX, y: clickY } = clickPosition.current;
+                  clickPosition.current = null;
                   if (Math.hypot(clickX - x, clickY - y) > CLICK_AREA) {
                     return;
                   }
@@ -217,7 +218,6 @@ export const Coverflow = ({
                   }
 
                   setCurrentCover(index);
-                  clickPosition.current = null;
                 }}
               />
             </animated.div>
