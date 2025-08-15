@@ -227,7 +227,9 @@ export const Coverflow = ({
       </div>
       <Dialog.Root
         open={state === State.MODAL}
-        present
+        lazyMount
+        unmountOnExit
+        present={state === State.MODAL || state === State.IDLE}
         onOpenChange={({ open }) => {
           if (!open) {
             dispatch(Event.CLOSE_MODAL);
@@ -271,16 +273,11 @@ export const Coverflow = ({
                 >
                   <h2
                     style={{
-                      backgroundImage: `url(${coverData[current].src})`,
-                      backgroundSize: "cover",
-                      backgroundRepeat: "no-repeat",
-                      color: "rgb(0 0 0 / 20%)",
                       fontSize: "3rem",
                       lineHeight: "0.8",
                       letterSpacing: "-0.05em",
                       fontFamily: "Inter, sans-serif",
                       fontWeight: 700,
-                      backgroundClip: "text",
                     }}
                   >
                     {coverData[current].title}
@@ -298,23 +295,27 @@ export const Coverflow = ({
                       <li
                         key={index}
                         style={{
-                          fontSize: "1rem",
                           fontFamily: "Inter, sans-serif",
                           letterSpacing: "-0.03em",
-                          fontWeight: 700,
+                          fontWeight: 600,
                           color: "rgb(0 0 0 / 80%)",
+                          display: "flex",
+                          alignItems: "baseline",
+                          marginBottom: "0.125rem",
                         }}
                       >
                         <span
                           style={{
-                            fontSize: "0.7rem",
+                            fontSize: "0.75rem",
                             display: "inline-block",
-                            width: "1.2rem",
+                            width: "1.5rem",
                           }}
                         >
                           {index + 1}.
                         </span>
-                        {title}
+                        <span style={{ flex: 1, fontSize: "1rem" }}>
+                          {title}
+                        </span>
                       </li>
                     ))}
                   </ol>

@@ -1,6 +1,6 @@
 export const covers = [
   {
-    title: "eternal sunshine deluxe: brighter days ahead (a cappella version)",
+    title: "eternal sunshine",
     tracks: [
       {
         title: "intro (end of the world)",
