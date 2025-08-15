@@ -13,6 +13,7 @@ export const FlippedCover = ({
     style={{
       width: size,
       height: size,
+      fontSize: Math.round(size / 20),
     }}
   >
     <h2 className={styles.title}>{meta.title}</h2>
