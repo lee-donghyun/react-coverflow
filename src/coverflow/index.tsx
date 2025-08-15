@@ -8,6 +8,7 @@ import { Util as CoverUtil } from "./cover.util";
 import { Util as ModalUtil } from "./modal.util";
 import { make } from "./use-machine.hook";
 import { FlippedCover } from "./flipped-cover";
+import * as styles from "./index.css";
 
 const CLICK_AREA = 100;
 
@@ -162,22 +163,18 @@ export const Coverflow = ({
   return (
     <>
       <div
+        className={styles.container}
         style={{
           padding: `${size}px calc(50% - ${size / 2}px) ${size}px calc(50% - ${
             size / 2
           }px)`,
-          overflow: "hidden",
         }}
       >
         <div
           {...bind()}
+          className={styles.gesture_container}
           style={{
-            touchAction: "none",
-            position: "relative",
-
             height: size,
-
-            perspective: "600px",
             perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
           }}
         >
@@ -186,10 +183,8 @@ export const Coverflow = ({
             // @ts-ignore
             <animated.div
               key={index}
+              className={styles.cover_item}
               style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
                 zIndex: covers.length - Math.abs(current - index),
                 ...props,
               }}
@@ -239,23 +234,10 @@ export const Coverflow = ({
       >
         <Portal>
           <Dialog.Backdrop />
-          <Dialog.Positioner
-            style={{
-              alignItems: "center",
-              display: "flex",
-              justifyContent: "center",
-              left: "0",
-              overflow: "auto",
-              position: "fixed",
-              top: "0",
-              width: "100vw",
-              height: "100dvh",
-              zIndex: "modal",
-            }}
-          >
+          <Dialog.Positioner className={styles.modal_positioner}>
             <Dialog.Content
+              className={styles.modal_content}
               style={{
-                perspective: "600px",
                 perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
               }}
             >
