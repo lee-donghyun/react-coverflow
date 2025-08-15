@@ -1,11 +1,12 @@
 import { animated, useSpring, useSprings } from "@react-spring/web";
 import { Handler, useGesture } from "@use-gesture/react";
-import { useMemo, useReducer, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Cover } from "./cover";
 import { Dialog } from "@ark-ui/react/dialog";
 import { Portal } from "@ark-ui/react/portal";
 import { Util as CoverUtil } from "./cover.util";
 import { Util as ModalUtil } from "./modal.util";
+import { make } from "./use-machine.hook";
 
 const CLICK_AREA = 100;
 
@@ -15,12 +16,45 @@ enum State {
   MODAL,
 }
 
+enum Event {
+  DRAG,
+  DRAG_DONE,
+  OPEN_MODAL,
+  CLOSE_MODAL,
+}
+
 enum Action {
   DRAG,
   DRAG_DONE,
   OPEN_MODAL,
   CLOSE_MODAL,
 }
+
+const useCoverflowMachine = make<
+  State,
+  Event,
+  {
+    [Action.DRAG]: (movementX: number) => State;
+    [Action.DRAG_DONE]: () => State;
+    [Action.OPEN_MODAL]: (target: number) => State;
+    [Action.CLOSE_MODAL]: () => State;
+  }
+>({
+  initial: State.IDLE,
+  states: {
+    [State.IDLE]: {
+      [Event.DRAG]: Action.DRAG,
+      [Event.OPEN_MODAL]: Action.OPEN_MODAL,
+    },
+    [State.DRAGGING]: {
+      [Event.DRAG]: Action.DRAG,
+      [Event.DRAG_DONE]: Action.DRAG_DONE,
+    },
+    [State.MODAL]: {
+      [Event.CLOSE_MODAL]: Action.CLOSE_MODAL,
+    },
+  },
+});
 
 const ts = [
   "Take Kare",
@@ -83,73 +117,61 @@ export const Coverflow = ({
     });
   };
 
-  const [state, dispatch] = useReducer(
-    (
-      _,
-      action:
-        | { type: Action.DRAG; movementX: number }
-        | { type: Action.DRAG_DONE }
-        | { type: Action.OPEN_MODAL; target: number }
-        | { type: Action.CLOSE_MODAL }
-    ) => {
-      switch (action.type) {
-        case Action.DRAG: {
-          const { prevCurrent } = memo.current;
+  const { state, dispatch } = useCoverflowMachine({
+    [Action.DRAG]: (movementX) => {
+      const { prevCurrent } = memo.current;
 
-          const diffScore = coverUtil.getDiffScore(
-            action.movementX,
-            prevCurrent,
-            covers.length
-          );
+      const diffScore = coverUtil.getDiffScore(
+        movementX,
+        prevCurrent,
+        covers.length
+      );
 
-          coversApi.start((index) => {
-            const score = index - prevCurrent + diffScore;
-            if (Math.abs(score) <= 0.5) {
-              setCurrnet(index);
-              memo.current.current = index;
-              onChange?.(index);
-            }
-            return coverUtil.getTransform(score);
-          });
+      coversApi.start((index) => {
+        const score = index - prevCurrent + diffScore;
+        if (Math.abs(score) <= 0.5) {
+          setCurrnet(index);
+          memo.current.current = index;
+          onChange?.(index);
+        }
+        return coverUtil.getTransform(score);
+      });
 
-          return State.DRAGGING;
-        }
-        case Action.DRAG_DONE: {
-          const current = memo.current.current;
-          setCurrentCover(current);
-          return State.IDLE;
-        }
-        case Action.OPEN_MODAL: {
-          coversApi.start((index) => {
-            if (index === action.target) {
-              modalApi.start(modalUtil.getVisibleTransform());
-              return modalUtil.getFlippedCoverTransform();
-            }
-          });
-          return State.MODAL;
-        }
-        case Action.CLOSE_MODAL: {
-          modalApi.start(modalUtil.getInvisibleTransform());
-          coversApi.start((index) => ({
-            ...coverUtil.getTransform(index - current),
-            delay: modalUtil.delay,
-          }));
-          return State.IDLE;
-        }
-      }
+      return State.DRAGGING;
     },
-    State.IDLE
-  );
+    [Action.DRAG_DONE]: () => {
+      const current = memo.current.current;
+      setCurrentCover(current);
+      return State.IDLE;
+    },
+    [Action.OPEN_MODAL]: (target) => {
+      coversApi.start((index) => {
+        if (index === target) {
+          modalApi.start(modalUtil.getVisibleTransform());
+          return modalUtil.getFlippedCoverTransform();
+        }
+      });
+      return State.MODAL;
+    },
+    [Action.CLOSE_MODAL]: () => {
+      modalApi.start(modalUtil.getInvisibleTransform());
+      coversApi.start((index) => ({
+        ...coverUtil.getTransform(index - current),
+        delay: modalUtil.delay,
+      }));
+      return State.IDLE;
+    },
+  });
 
   const dragHandler: Handler<"drag" | "wheel"> = ({
     movement: [movementX],
     active,
   }) => {
     if (active) {
-      dispatch({ type: Action.DRAG, movementX });
+      dispatch(Event.DRAG, movementX);
       return;
     }
-    dispatch({ type: Action.DRAG_DONE });
+    dispatch(Event.DRAG_DONE);
   };
 
   const bind = useGesture(
@@ -213,7 +235,7 @@ export const Coverflow = ({
                   }
 
                   if (current === index) {
-                    dispatch({ type: Action.OPEN_MODAL, target: index });
+                    dispatch(Event.OPEN_MODAL, index);
                     return;
                   }
 
@@ -229,7 +251,7 @@ export const Coverflow = ({
         present
         onOpenChange={({ open }) => {
           if (!open) {
-            dispatch({ type: Action.CLOSE_MODAL });
+            dispatch(Event.CLOSE_MODAL);
           }
         }}
       >
