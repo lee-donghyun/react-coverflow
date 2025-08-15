@@ -7,6 +7,7 @@ import { Portal } from "@ark-ui/react/portal";
 import { Util as CoverUtil } from "./cover.util";
 import { Util as ModalUtil } from "./modal.util";
 import { make } from "./use-machine.hook";
+import { FlippedCover } from "./flipped-cover";
 
 const CLICK_AREA = 100;
 
@@ -261,65 +262,7 @@ export const Coverflow = ({
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
               <animated.div style={modal}>
-                <div
-                  style={{
-                    width: size,
-                    height: size,
-                    padding: "2rem",
-                    backgroundColor: "#FFF",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <h2
-                    style={{
-                      fontSize: "3rem",
-                      lineHeight: "0.8",
-                      letterSpacing: "-0.05em",
-                      fontFamily: "Inter, sans-serif",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {coverData[current].title}
-                  </h2>
-                  <ol
-                    style={{
-                      paddingLeft: "0",
-                      marginTop: "2rem",
-                      listStyleType: "none",
-                      overflowY: "scroll",
-                      flex: 1,
-                    }}
-                  >
-                    {coverData[current].tracks.map(({ title }, index) => (
-                      <li
-                        key={index}
-                        style={{
-                          fontFamily: "Inter, sans-serif",
-                          letterSpacing: "-0.03em",
-                          fontWeight: 600,
-                          color: "rgb(0 0 0 / 80%)",
-                          display: "flex",
-                          alignItems: "baseline",
-                          marginBottom: "0.125rem",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "0.75rem",
-                            display: "inline-block",
-                            width: "1.5rem",
-                          }}
-                        >
-                          {index + 1}.
-                        </span>
-                        <span style={{ flex: 1, fontSize: "1rem" }}>
-                          {title}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
+                <FlippedCover size={size} meta={coverData[current]} />
               </animated.div>
             </Dialog.Content>
           </Dialog.Positioner>
