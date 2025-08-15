@@ -56,27 +56,6 @@ const useCoverflowMachine = make<
   },
 });
 
-const ts = [
-  "Take Kare",
-  "Quarterback",
-  "Rarri",
-  "Stunna",
-  "Best Friend",
-  "Power",
-  "Calling Your Name",
-  "No Way",
-  "Mine",
-  "Freaky",
-  "Be Me See Me",
-  "Overdosin",
-  "Again",
-  "That's All",
-  "UDiggWhatImSayin",
-  "Draw Down",
-  "Wood Would",
-  "Wanna Be Me",
-];
-
 export const Coverflow = ({
   covers: coverData,
   size,
@@ -304,7 +283,7 @@ export const Coverflow = ({
                       backgroundClip: "text",
                     }}
                   >
-                    Slime Season 3
+                    {coverData[current].title}
                   </h2>
                   <ol
                     style={{
@@ -315,7 +294,7 @@ export const Coverflow = ({
                       flex: 1,
                     }}
                   >
-                    {ts.map((title, index) => (
+                    {coverData[current].tracks.map(({ title }, index) => (
                       <li
                         key={index}
                         style={{
@@ -333,7 +312,7 @@ export const Coverflow = ({
                             width: "1.2rem",
                           }}
                         >
-                          {index}.
+                          {index + 1}.
                         </span>
                         {title}
                       </li>

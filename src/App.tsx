@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { Coverflow } from "./coverflow";
-
-const covers = Array(23)
-  .fill(0)
-  .map((_, index) => ({ src: `${index + 1}.jpg` }));
+import { covers } from "./data";
 
 const getSize = (width: number) => Math.max(width / 3.6, 200);
 

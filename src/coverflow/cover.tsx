@@ -7,7 +7,7 @@ export const Cover = ({
   onMouseDown,
   onMouseUp,
 }: {
-  meta: { src: string };
+  meta: { src: string; title: string; tracks: { title: string }[] };
   size: number;
   backgroundColor: string;
   onMouseDown: EventHandler<MouseEvent | TouchEvent>;
