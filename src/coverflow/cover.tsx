@@ -1,4 +1,5 @@
-import { EventHandler, MouseEvent, TouchEvent } from "react";
+import { EventHandler, MouseEvent, TouchEvent, useState } from "react";
+import * as styles from "./cover.css";
 
 export const Cover = ({
   size,
@@ -12,48 +13,50 @@ export const Cover = ({
   backgroundColor: string;
   onMouseDown: EventHandler<MouseEvent | TouchEvent>;
   onMouseUp: EventHandler<MouseEvent | TouchEvent>;
-}) => (
-  <div
-    style={{
-      width: size,
-      height: size,
-      position: "relative",
-    }}
-  >
+}) => {
+  const [grabbing, setGrabbing] = useState(false);
+
+  const handleMouseDown: EventHandler<MouseEvent | TouchEvent> = (e) => {
+    setGrabbing(true);
+    onMouseDown(e);
+  };
+
+  const handleMouseUp: EventHandler<MouseEvent | TouchEvent> = (e) => {
+    setGrabbing(false);
+    onMouseUp(e);
+  };
+  return (
     <div
+      className={styles.cover_container}
       style={{
-        position: "absolute",
-        top: size,
-        left: 0,
-        right: 0,
+        width: size,
         height: size,
-        backgroundColor,
-
-        userSelect: "none",
       }}
-    ></div>
-    <button
-      style={{ all: "unset", cursor: "pointer" }}
-      onMouseDown={onMouseDown}
-      onTouchStart={onMouseDown}
-      onMouseUp={onMouseUp}
-      onTouchEnd={onMouseUp}
     >
-      <img
+      <div
+        className={styles.reflection}
         style={{
-          width: size,
+          backgroundColor,
           height: size,
-
-          userSelect: "none",
-
-          boxSizing: "border-box",
-
-          pointerEvents: "none",
-          WebkitBoxReflect:
-            "below 0 linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.4))",
         }}
-        src={meta.src}
-      />
-    </button>
-  </div>
-);
+      ></div>
+      <button
+        className={styles.cover_button}
+        style={{ cursor: grabbing ? "grabbing" : "grab" }}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onTouchEnd={handleMouseUp}
+      >
+        <img
+          className={styles.cover_image}
+          style={{
+            width: size,
+            height: size,
+          }}
+          src={meta.src}
+        />
+      </button>
+    </div>
+  );
+};

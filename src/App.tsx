@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react";
 import { Coverflow } from "./coverflow";
 import { covers } from "./data";
-import {
-  container,
-  container_inner,
-  credit,
-  credit_link,
-  display_inner,
-  display_positioner,
-} from "./App.css";
+import * as styles from "./App.css";
 
 const getSize = (width: number) => Math.max(width / 3.6, 200);
 
@@ -35,8 +28,11 @@ function App() {
 
   return (
     <>
-      <div className={container} style={{ backgroundColor: BACKGROUND_COLOR }}>
-        <div className={container_inner}>
+      <div
+        className={styles.container}
+        style={{ backgroundColor: BACKGROUND_COLOR }}
+      >
+        <div className={styles.container_inner}>
           <Coverflow
             size={size}
             backgroundColor={BACKGROUND_COLOR}
@@ -47,18 +43,18 @@ function App() {
           />
         </div>
       </div>
-      <div className={display_positioner}>
-        <div className={display_inner}>
+      <div className={styles.display_positioner}>
+        <div className={styles.display_inner}>
           selected = {selected}; index = {index}
         </div>
       </div>
-      <div className={credit}>
+      <div className={styles.credit}>
         credit:{" "}
         <a
           href="https://github.com/lee-donghyun/react-coverflow"
           target="_blank"
           rel="noreferrer"
-          className={credit_link}
+          className={styles.credit_link}
         >
           github@lee-donghyun
         </a>
