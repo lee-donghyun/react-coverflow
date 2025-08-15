@@ -1,4 +1,5 @@
-import { EventHandler, MouseEvent, TouchEvent } from "react";
+import { EventHandler, MouseEvent, TouchEvent, useState } from "react";
+import * as styles from "./cover.css";
 
 export const Cover = ({
   size,
@@ -7,57 +8,55 @@ export const Cover = ({
   onMouseDown,
   onMouseUp,
 }: {
-  meta: { src: string };
+  meta: { src: string; title: string; tracks: { title: string }[] };
   size: number;
   backgroundColor: string;
   onMouseDown: EventHandler<MouseEvent | TouchEvent>;
   onMouseUp: EventHandler<MouseEvent | TouchEvent>;
-}) => (
-  <button
-    onMouseDown={onMouseDown}
-    onTouchStart={onMouseDown}
-    onMouseUp={onMouseUp}
-    onTouchEnd={onMouseUp}
-    tabIndex={-1}
-    style={{
-      padding: 0,
-      margin: 0,
-      border: "none",
+}) => {
+  const [grabbing, setGrabbing] = useState(false);
 
-      userSelect: "none",
+  const handleMouseDown: EventHandler<MouseEvent | TouchEvent> = (e) => {
+    setGrabbing(true);
+    onMouseDown(e);
+  };
 
-      width: size,
-      height: size,
-      position: "relative",
-      outline: "none",
-    }}
-  >
+  const handleMouseUp: EventHandler<MouseEvent | TouchEvent> = (e) => {
+    setGrabbing(false);
+    onMouseUp(e);
+  };
+  return (
     <div
-      style={{
-        position: "absolute",
-        top: size,
-        left: 0,
-        right: 0,
-        height: size,
-        backgroundColor,
-
-        userSelect: "none",
-      }}
-    ></div>
-    <img
+      className={styles.cover_container}
       style={{
         width: size,
         height: size,
-
-        userSelect: "none",
-
-        boxSizing: "border-box",
-
-        pointerEvents: "none",
-        WebkitBoxReflect:
-          "below 0 linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.4))",
       }}
-      src={meta.src}
-    />
-  </button>
-);
+    >
+      <div
+        className={styles.reflection}
+        style={{
+          backgroundColor,
+          height: size,
+        }}
+      ></div>
+      <button
+        className={styles.cover_button}
+        style={{ cursor: grabbing ? "grabbing" : "grab" }}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onTouchEnd={handleMouseUp}
+      >
+        <img
+          className={styles.cover_image}
+          style={{
+            width: size,
+            height: size,
+          }}
+          src={meta.src}
+        />
+      </button>
+    </div>
+  );
+};

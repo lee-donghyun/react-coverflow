@@ -1,10 +1,62 @@
-import { animated, useSprings } from "@react-spring/web";
+import { animated, useSpring, useSprings } from "@react-spring/web";
 import { Handler, useGesture } from "@use-gesture/react";
 import { useMemo, useRef, useState } from "react";
 import { Cover } from "./cover";
-import { Util } from "./util";
+import { Dialog } from "@ark-ui/react/dialog";
+import { Portal } from "@ark-ui/react/portal";
+import { Util as CoverUtil } from "./cover.util";
+import { Util as ModalUtil } from "./modal.util";
+import { make } from "./use-machine.hook";
+import { FlippedCover } from "./flipped-cover";
+import * as styles from "./index.css";
 
 const CLICK_AREA = 100;
+
+enum State {
+  IDLE,
+  DRAGGING,
+  MODAL,
+}
+
+enum Event {
+  DRAG,
+  DRAG_DONE,
+  OPEN_MODAL,
+  CLOSE_MODAL,
+}
+
+enum Action {
+  DRAG,
+  DRAG_DONE,
+  OPEN_MODAL,
+  CLOSE_MODAL,
+}
+
+const useCoverflowMachine = make<
+  State,
+  Event,
+  {
+    [Action.DRAG]: (movementX: number) => State;
+    [Action.DRAG_DONE]: () => State;
+    [Action.OPEN_MODAL]: (target: number) => State;
+    [Action.CLOSE_MODAL]: () => State;
+  }
+>({
+  initial: State.IDLE,
+  states: {
+    [State.IDLE]: {
+      [Event.DRAG]: Action.DRAG,
+      [Event.OPEN_MODAL]: Action.OPEN_MODAL,
+    },
+    [State.DRAGGING]: {
+      [Event.DRAG]: Action.DRAG,
+      [Event.DRAG_DONE]: Action.DRAG_DONE,
+    },
+    [State.MODAL]: {
+      [Event.CLOSE_MODAL]: Action.CLOSE_MODAL,
+    },
+  },
+});
 
 export const Coverflow = ({
   covers: coverData,
@@ -25,13 +77,16 @@ export const Coverflow = ({
     prevCurrent: 0,
   });
 
-  const util = useMemo(() => new Util(size), [size]);
+  const coverUtil = useMemo(() => new CoverUtil(size), [size]);
+  const modalUtil = useMemo(() => new ModalUtil(), []);
 
   const [current, setCurrnet] = useState(0);
 
   const [covers, coversApi] = useSprings(coverData.length, (score) => {
-    return util.getTransform(score);
+    return coverUtil.getTransform(score);
   });
+
+  const [modal, modalApi] = useSpring(() => modalUtil.getInvisibleTransform());
 
   const setCurrentCover = (current: number) => {
     setCurrnet(current);
@@ -39,105 +94,162 @@ export const Coverflow = ({
     onSelected?.(current);
     memo.current.prevCurrent = current;
     return coversApi.start((index) => {
-      return util.getTransform(index - current);
+      return coverUtil.getTransform(index - current);
     });
   };
 
-  const handler: Handler<"drag" | "wheel"> = ({
-    movement: [movementX],
-    active,
-  }) => {
-    if (active) {
+  const { state, dispatch } = useCoverflowMachine({
+    [Action.DRAG]: (movementX) => {
       const { prevCurrent } = memo.current;
 
-      const diffScore = util.getDiffScore(
+      const diffScore = coverUtil.getDiffScore(
         movementX,
         prevCurrent,
         covers.length
       );
 
-      return coversApi.start((index) => {
+      coversApi.start((index) => {
         const score = index - prevCurrent + diffScore;
         if (Math.abs(score) <= 0.5) {
           setCurrnet(index);
           memo.current.current = index;
           onChange?.(index);
         }
-        return util.getTransform(score);
+        return coverUtil.getTransform(score);
       });
-    }
 
-    const current = memo.current.current;
-    setCurrentCover(current);
+      return State.DRAGGING;
+    },
+    [Action.DRAG_DONE]: () => {
+      const current = memo.current.current;
+      setCurrentCover(current);
+      return State.IDLE;
+    },
+    [Action.OPEN_MODAL]: (target) => {
+      coversApi.start((index) => {
+        if (index === target) {
+          modalApi.start(modalUtil.getVisibleTransform());
+          return modalUtil.getFlippedCoverTransform();
+        }
+      });
+      return State.MODAL;
+    },
+    [Action.CLOSE_MODAL]: () => {
+      modalApi.start(modalUtil.getInvisibleTransform());
+      coversApi.start((index) => ({
+        ...coverUtil.getTransform(index - current),
+        delay: modalUtil.delay,
+      }));
+      return State.IDLE;
+    },
+  });
+
+  const dragHandler: Handler<"drag" | "wheel"> = ({
+    movement: [movementX],
+    active,
+  }) => {
+    if (active) {
+      dispatch(Event.DRAG, movementX);
+      return;
+    }
+    dispatch(Event.DRAG_DONE);
   };
 
   const bind = useGesture(
-    {
-      onDrag: handler,
-      onWheel: handler,
-    },
+    { onDrag: dragHandler, onWheel: dragHandler },
     { drag: { keyboardDisplacement: size / 10 } }
   );
 
   return (
-    <div
-      style={{
-        padding: `${size}px calc(50% - ${size / 2}px) ${size}px calc(50% - ${
-          size / 2
-        }px)`,
-        overflow: "hidden",
-      }}
-    >
+    <>
       <div
-        {...bind()}
+        className={styles.container}
         style={{
-          touchAction: "none",
-          position: "relative",
-
-          height: size,
-
-          perspective: "600px",
-          perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
+          padding: `${size}px calc(50% - ${size / 2}px) ${size}px calc(50% - ${
+            size / 2
+          }px)`,
         }}
       >
-        {covers.map((props, index) => (
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          <animated.div
-            key={index}
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              zIndex: covers.length - Math.abs(current - index),
-              ...props,
-            }}
-          >
-            <Cover
-              meta={coverData[index]}
-              backgroundColor={backgroundColor}
-              size={size}
-              onMouseDown={(e) => {
-                const { x, y } = e.currentTarget.getBoundingClientRect();
-                clickPosition.current = { x, y };
+        <div
+          {...bind()}
+          className={styles.gesture_container}
+          style={{
+            height: size,
+            perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
+          }}
+        >
+          {covers.map((props, index) => (
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            <animated.div
+              key={index}
+              className={styles.cover_item}
+              style={{
+                zIndex: covers.length - Math.abs(current - index),
+                ...props,
               }}
-              onMouseUp={(e) => {
-                const { x, y } = e.currentTarget.getBoundingClientRect();
-                if (clickPosition.current === null) return;
-                if (
-                  (clickPosition.current.x - x) ** 2 +
-                    (clickPosition.current.y - y) ** 2 <
-                  CLICK_AREA
-                ) {
-                  const current = index;
-                  setCurrentCover(current);
-                }
-                clickPosition.current = null;
-              }}
-            />
-          </animated.div>
-        ))}
+            >
+              <Cover
+                meta={coverData[index]}
+                backgroundColor={backgroundColor}
+                size={size}
+                onMouseDown={(e) => {
+                  const { x, y } = e.currentTarget.getBoundingClientRect();
+                  clickPosition.current = { x, y };
+                }}
+                onMouseUp={(e) => {
+                  if (clickPosition.current === null) {
+                    return;
+                  }
+
+                  const { x, y } = e.currentTarget.getBoundingClientRect();
+                  const { x: clickX, y: clickY } = clickPosition.current;
+                  clickPosition.current = null;
+                  if (Math.hypot(clickX - x, clickY - y) > CLICK_AREA) {
+                    return;
+                  }
+
+                  if (current === index) {
+                    dispatch(Event.OPEN_MODAL, index);
+                    return;
+                  }
+
+                  setCurrentCover(index);
+                }}
+              />
+            </animated.div>
+          ))}
+        </div>
       </div>
-    </div>
+      <Dialog.Root
+        open={state === State.MODAL}
+        lazyMount
+        unmountOnExit
+        present={state === State.MODAL || state === State.IDLE}
+        onOpenChange={({ open }) => {
+          if (!open) {
+            dispatch(Event.CLOSE_MODAL);
+          }
+        }}
+      >
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner className={styles.modal_positioner}>
+            <Dialog.Content
+              className={styles.modal_content}
+              style={{
+                perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
+              }}
+            >
+              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+              {/* @ts-ignore */}
+              <animated.div style={modal}>
+                <FlippedCover size={size} meta={coverData[current]} />
+              </animated.div>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+    </>
   );
 };

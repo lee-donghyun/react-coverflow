@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { Coverflow } from "./coverflow";
-
-const covers = Array(23)
-  .fill(0)
-  .map((_, index) => ({ src: `${index + 1}.jpg` }));
+import { covers } from "./data";
+import * as styles from "./App.css";
 
 const getSize = (width: number) => Math.max(width / 3.6, 200);
 
@@ -31,23 +29,10 @@ function App() {
   return (
     <>
       <div
-        style={{
-          height: "100dvh",
-          backgroundColor: BACKGROUND_COLOR,
-          overflow: "hidden",
-
-          position: "relative",
-        }}
+        className={styles.container}
+        style={{ backgroundColor: BACKGROUND_COLOR }}
       >
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            transform: "translateY(-50%)",
-            left: 0,
-            right: 0,
-          }}
-        >
+        <div className={styles.container_inner}>
           <Coverflow
             size={size}
             backgroundColor={BACKGROUND_COLOR}
@@ -58,51 +43,18 @@ function App() {
           />
         </div>
       </div>
-      <div
-        style={{
-          position: "fixed",
-          bottom: 10,
-          left: 0,
-          right: 0,
-          display: "flex",
-          justifyContent: "center",
-          padding: "1rem",
-        }}
-      >
-        <div
-          style={{
-            padding: "1rem",
-            color: "white",
-            background: "rgba(0, 0, 0, 0.3)",
-            textAlign: "center",
-            borderRadius: "1rem",
-            backdropFilter: "blur(1rem)",
-            fontFamily: "monospace",
-          }}
-        >
+      <div className={styles.display_positioner}>
+        <div className={styles.display_inner}>
           selected = {selected}; index = {index}
         </div>
       </div>
-      <div
-        style={{
-          position: "fixed",
-          top: 10,
-          right: 10,
-          padding: "1rem",
-          color: "white",
-          background: "rgba(0, 0, 0, 0.3)",
-          textAlign: "center",
-          borderRadius: "1rem",
-          backdropFilter: "blur(1rem)",
-          fontFamily: "monospace",
-        }}
-      >
+      <div className={styles.credit}>
         credit:{" "}
         <a
           href="https://github.com/lee-donghyun/react-coverflow"
           target="_blank"
           rel="noreferrer"
-          style={{ color: "white", textDecoration: "none" }}
+          className={styles.credit_link}
         >
           github@lee-donghyun
         </a>
