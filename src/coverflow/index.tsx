@@ -10,8 +10,6 @@ import { make } from "./use-machine.hook";
 import { FlippedCover } from "./flipped-cover";
 import * as styles from "./index.css";
 
-const CLICK_AREA = 100;
-
 enum State {
   IDLE,
   DRAGGING,
@@ -71,7 +69,6 @@ export const Coverflow = ({
   onChange?: (index: number) => void;
   onSelected?: (index: number) => void;
 }) => {
-  const clickPosition = useRef<null | { x: number; y: number }>(null);
   const memo = useRef<{ current: number; prevCurrent: number }>({
     current: 0,
     prevCurrent: 0,
@@ -146,9 +143,10 @@ export const Coverflow = ({
 
   const dragHandler: Handler<"drag" | "wheel"> = ({
     movement: [movementX],
+    intentional,
     active,
   }) => {
-    if (active) {
+    if (active && intentional) {
       dispatch(Event.DRAG, movementX);
       return;
     }
@@ -157,7 +155,7 @@ export const Coverflow = ({
 
   const bind = useGesture(
     { onDrag: dragHandler, onWheel: dragHandler },
-    { drag: { keyboardDisplacement: size / 10 } }
+    { drag: { keyboardDisplacement: size / 10, threshold: 10 } }
   );
 
   return (
@@ -193,27 +191,11 @@ export const Coverflow = ({
                 meta={coverData[index]}
                 backgroundColor={backgroundColor}
                 size={size}
-                onMouseDown={(e) => {
-                  const { x, y } = e.currentTarget.getBoundingClientRect();
-                  clickPosition.current = { x, y };
-                }}
-                onMouseUp={(e) => {
-                  if (clickPosition.current === null) {
-                    return;
-                  }
-
-                  const { x, y } = e.currentTarget.getBoundingClientRect();
-                  const { x: clickX, y: clickY } = clickPosition.current;
-                  clickPosition.current = null;
-                  if (Math.hypot(clickX - x, clickY - y) > CLICK_AREA) {
-                    return;
-                  }
-
+                onSelect={() => {
                   if (current === index) {
                     dispatch(Event.OPEN_MODAL, index);
                     return;
                   }
-
                   setCurrentCover(index);
                 }}
               />

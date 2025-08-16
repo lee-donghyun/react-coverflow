@@ -1,29 +1,43 @@
-import { EventHandler, MouseEvent, TouchEvent, useState } from "react";
+import { PointerEventHandler, useState } from "react";
 import * as styles from "./cover.css";
+
+const CLICK_AREA = 100;
 
 export const Cover = ({
   size,
   meta,
   backgroundColor,
-  onMouseDown,
-  onMouseUp,
+  onSelect,
 }: {
   meta: { src: string; title: string; tracks: { title: string }[] };
   size: number;
   backgroundColor: string;
-  onMouseDown: EventHandler<MouseEvent | TouchEvent>;
-  onMouseUp: EventHandler<MouseEvent | TouchEvent>;
+  onSelect: () => void;
 }) => {
-  const [grabbing, setGrabbing] = useState(false);
+  const [clickPosition, setClickPosition] = useState<null | {
+    x: number;
+    y: number;
+  }>(null);
+  const grabbing = clickPosition !== null;
 
-  const handleMouseDown: EventHandler<MouseEvent | TouchEvent> = (e) => {
-    setGrabbing(true);
-    onMouseDown(e);
+  const onPointerDown: PointerEventHandler<HTMLButtonElement> = (e) => {
+    const { x, y } = e.currentTarget.getBoundingClientRect();
+    setClickPosition({ x, y });
   };
 
-  const handleMouseUp: EventHandler<MouseEvent | TouchEvent> = (e) => {
-    setGrabbing(false);
-    onMouseUp(e);
+  const onPointerUp: PointerEventHandler<HTMLButtonElement> = (e) => {
+    if (clickPosition === null) {
+      return;
+    }
+
+    const { x, y } = e.currentTarget.getBoundingClientRect();
+    const { x: clickX, y: clickY } = clickPosition;
+    if (Math.hypot(clickX - x, clickY - y) > CLICK_AREA) {
+      return;
+    }
+
+    setClickPosition(null);
+    onSelect();
   };
   return (
     <div
@@ -43,10 +57,8 @@ export const Cover = ({
       <button
         className={styles.cover_button}
         style={{ cursor: grabbing ? "grabbing" : "grab" }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onTouchEnd={handleMouseUp}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
       >
         <img
           className={styles.cover_image}

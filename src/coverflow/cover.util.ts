@@ -12,7 +12,7 @@ export class Util {
     this.scaleWeightRegion1 = -0.2;
     this.scaleWeightRegion2 = -0.05;
     this.rubber = 0.15;
-    this.scrollSpeed = 10 / (window?.innerWidth ?? 800);
+    this.scrollSpeed = 5 / size;
   }
 
   /**
