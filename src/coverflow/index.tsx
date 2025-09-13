@@ -18,16 +18,16 @@ enum State {
 
 type Action = {
   drag: (movementX: number) => State.DRAGGING;
-  dragDone: () => State.IDLE;
   openModal: (target: number) => State.MODAL;
   closeModal: () => State.IDLE;
+  selectCover: (target: number) => State.IDLE;
 };
 
 const useCoverflowMachine = make<State, Action>({
   initial: State.IDLE,
   states: {
-    [State.IDLE]: ["drag", "openModal"],
-    [State.DRAGGING]: ["drag", "dragDone"],
+    [State.IDLE]: ["drag", "openModal", "selectCover"],
+    [State.DRAGGING]: ["drag", "selectCover"],
     [State.MODAL]: ["closeModal"],
   },
 });
@@ -61,16 +61,6 @@ export const Coverflow = ({
 
   const [modal, modalApi] = useSpring(() => modalUtil.getInvisibleTransform());
 
-  const setCurrentCover = (current: number) => {
-    setCurrnet(current);
-    onChange?.(current);
-    onSelected?.(current);
-    memo.current.prevCurrent = current;
-    return coversApi.start((index) => {
-      return coverUtil.getTransform(index - current);
-    });
-  };
-
   const { state, dispatch } = useCoverflowMachine({
     drag: (movementX) => {
       const { prevCurrent } = memo.current;
@@ -93,11 +83,6 @@ export const Coverflow = ({
 
       return State.DRAGGING;
     },
-    dragDone: () => {
-      const current = memo.current.current;
-      setCurrentCover(current);
-      return State.IDLE;
-    },
     openModal: (target) => {
       coversApi.start((index) => {
         if (index === target) {
@@ -115,6 +100,16 @@ export const Coverflow = ({
       }));
       return State.IDLE;
     },
+    selectCover: (target) => {
+      setCurrnet(target);
+      onChange?.(target);
+      onSelected?.(target);
+      memo.current.prevCurrent = target;
+      coversApi.start((index) => {
+        return coverUtil.getTransform(index - target);
+      });
+      return State.IDLE;
+    },
   });
 
   const dragHandler: Handler<"drag" | "wheel"> = ({
@@ -126,7 +121,7 @@ export const Coverflow = ({
       dispatch("drag", movementX);
       return;
     }
-    dispatch("dragDone");
+    dispatch("selectCover", memo.current.current);
   };
 
   const bind = useGesture(
@@ -172,7 +167,7 @@ export const Coverflow = ({
                     dispatch("openModal", index);
                     return;
                   }
-                  setCurrentCover(index);
+                  dispatch("selectCover", index);
                 }}
               />
             </animated.div>
