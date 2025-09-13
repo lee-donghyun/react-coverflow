@@ -129,6 +129,8 @@ export const Coverflow = ({
     { drag: { keyboardDisplacement: size / 10, threshold: 10 } }
   );
 
+  const perspective = coverUtil.perspective;
+
   return (
     <>
       <div
@@ -142,10 +144,7 @@ export const Coverflow = ({
         <div
           {...bind()}
           className={styles.gesture_container}
-          style={{
-            height: size,
-            perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
-          }}
+          style={{ height: size, perspective }}
         >
           {covers.map((props, index) => (
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -188,12 +187,7 @@ export const Coverflow = ({
         <Portal>
           <Dialog.Backdrop />
           <Dialog.Positioner className={styles.modal_positioner}>
-            <Dialog.Content
-              className={styles.modal_content}
-              style={{
-                perspectiveOrigin: `calc(0% + ${size / 2}px) 50%`,
-              }}
-            >
+            <Dialog.Content style={{ perspective }}>
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
               <animated.div style={modal}>

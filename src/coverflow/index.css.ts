@@ -7,7 +7,6 @@ export const container = style({
 export const gesture_container = style({
   touchAction: "none",
   position: "relative",
-  perspective: "600px",
 });
 
 export const cover_item = style({
@@ -27,8 +26,4 @@ export const modal_positioner = style({
   width: "100vw",
   height: "100dvh",
   zIndex: "modal",
-});
-
-export const modal_content = style({
-  perspective: "600px",
 });

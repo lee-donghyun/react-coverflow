@@ -1,10 +1,11 @@
 export class Util {
-  private xWeightRegion1: number;
-  private xWeightRegion2: number;
-  private scaleWeightRegion1: number;
-  private scaleWeightRegion2: number;
-  private rubber: number;
-  private scrollSpeed: number;
+  private readonly xWeightRegion1: number;
+  private readonly xWeightRegion2: number;
+  private readonly scaleWeightRegion1: number;
+  private readonly scaleWeightRegion2: number;
+  private readonly rubber: number;
+  private readonly scrollSpeed: number;
+  readonly perspective: number;
 
   constructor(size: number) {
     this.xWeightRegion1 = size * 0.55;
@@ -13,6 +14,7 @@ export class Util {
     this.scaleWeightRegion2 = -0.05;
     this.rubber = 0.15;
     this.scrollSpeed = 5 / size;
+    this.perspective = size * 1.7;
   }
 
   /**
