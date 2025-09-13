@@ -16,43 +16,19 @@ enum State {
   MODAL,
 }
 
-enum Event {
-  DRAG,
-  DRAG_DONE,
-  OPEN_MODAL,
-  CLOSE_MODAL,
-}
+type Action = {
+  drag: (movementX: number) => State.DRAGGING;
+  dragDone: () => State.IDLE;
+  openModal: (target: number) => State.MODAL;
+  closeModal: () => State.IDLE;
+};
 
-enum Action {
-  DRAG,
-  DRAG_DONE,
-  OPEN_MODAL,
-  CLOSE_MODAL,
-}
-
-const useCoverflowMachine = make<
-  State,
-  Event,
-  {
-    [Action.DRAG]: (movementX: number) => State;
-    [Action.DRAG_DONE]: () => State;
-    [Action.OPEN_MODAL]: (target: number) => State;
-    [Action.CLOSE_MODAL]: () => State;
-  }
->({
+const useCoverflowMachine = make<State, Action>({
   initial: State.IDLE,
   states: {
-    [State.IDLE]: {
-      [Event.DRAG]: Action.DRAG,
-      [Event.OPEN_MODAL]: Action.OPEN_MODAL,
-    },
-    [State.DRAGGING]: {
-      [Event.DRAG]: Action.DRAG,
-      [Event.DRAG_DONE]: Action.DRAG_DONE,
-    },
-    [State.MODAL]: {
-      [Event.CLOSE_MODAL]: Action.CLOSE_MODAL,
-    },
+    [State.IDLE]: ["drag", "openModal"],
+    [State.DRAGGING]: ["drag", "dragDone"],
+    [State.MODAL]: ["closeModal"],
   },
 });
 
@@ -96,7 +72,7 @@ export const Coverflow = ({
   };
 
   const { state, dispatch } = useCoverflowMachine({
-    [Action.DRAG]: (movementX) => {
+    drag: (movementX) => {
       const { prevCurrent } = memo.current;
 
       const diffScore = coverUtil.getDiffScore(
@@ -117,12 +93,12 @@ export const Coverflow = ({
 
       return State.DRAGGING;
     },
-    [Action.DRAG_DONE]: () => {
+    dragDone: () => {
       const current = memo.current.current;
       setCurrentCover(current);
       return State.IDLE;
     },
-    [Action.OPEN_MODAL]: (target) => {
+    openModal: (target) => {
       coversApi.start((index) => {
         if (index === target) {
           modalApi.start(modalUtil.getVisibleTransform());
@@ -131,7 +107,7 @@ export const Coverflow = ({
       });
       return State.MODAL;
     },
-    [Action.CLOSE_MODAL]: () => {
+    closeModal: () => {
       modalApi.start(modalUtil.getInvisibleTransform());
       coversApi.start((index) => ({
         ...coverUtil.getTransform(index - current),
@@ -147,10 +123,10 @@ export const Coverflow = ({
     active,
   }) => {
     if (active && intentional) {
-      dispatch(Event.DRAG, movementX);
+      dispatch("drag", movementX);
       return;
     }
-    dispatch(Event.DRAG_DONE);
+    dispatch("dragDone");
   };
 
   const bind = useGesture(
@@ -193,7 +169,7 @@ export const Coverflow = ({
                 size={size}
                 onSelect={() => {
                   if (current === index) {
-                    dispatch(Event.OPEN_MODAL, index);
+                    dispatch("openModal", index);
                     return;
                   }
                   setCurrentCover(index);
@@ -210,7 +186,7 @@ export const Coverflow = ({
         present={state === State.MODAL || state === State.IDLE}
         onOpenChange={({ open }) => {
           if (!open) {
-            dispatch(Event.CLOSE_MODAL);
+            dispatch("closeModal");
           }
         }}
       >

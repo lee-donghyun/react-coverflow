@@ -2,7 +2,6 @@ import { useState } from "react";
 
 export const make = <
   State extends string | number | symbol,
-  Event extends string | number | symbol,
   Actions extends {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key in string | number | symbol]: (...payload: any[]) => State;
@@ -10,30 +9,28 @@ export const make = <
 >(machine: {
   initial: State;
   states: {
-    [s in State]: {
-      [a in Event]?: keyof Actions;
-    };
+    [s in State]: (keyof Actions)[];
   };
 }) => {
   const useMachine = (actions: Actions) => {
     const [state, setState] = useState(machine.initial);
 
-    const dispatch = <E extends Event>(
-      event: E,
-      ...payload: Parameters<Actions[E]>
+    const dispatch = <ActionKey extends keyof Actions>(
+      actionKey: ActionKey,
+      ...payload: Parameters<Actions[ActionKey]>
     ) => {
-      const actionName = machine.states[state]?.[event];
-      if (actionName === undefined) {
+      if (!machine.states[state].includes(actionKey)) {
         if (import.meta.env.DEV) {
           throw new Error(
-            `Action ${event as string} is not defined for state ${
+            `Action ${actionKey as string} is not defined for state ${
               state as string
             }`
           );
         }
         return;
       }
-      const nextState = actions[actionName](...payload);
+      const action = actions[actionKey];
+      const nextState = action(...payload);
       setState(nextState);
     };
 
